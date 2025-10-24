@@ -2,11 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1e1e1e">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elevator Control System - Sistema de Control de Elevadores</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -2205,10 +2201,10 @@
                         String(device.deviceId).trim() !== ""
                     );
                     
-                    console.log(`Mostrando ${Math.min(validDevices.length, 3)} dispositivos en el dashboard`);
+                    console.log(`Mostrando ${Math.min(validDevices.length, 1)} dispositivos en el dashboard`);
                     
-                    // Mostrar los primeros 3 dispositivos válidos
-                    validDevices.slice(0, 3).forEach((device, index) => {
+                    // Mostrar solo el primer dispositivo válido
+                    validDevices.slice(0, 1).forEach((device, index) => {
                         const card = createDeviceElevatorCard(device, index);
                 container.appendChild(card);
             });
@@ -4450,41 +4446,6 @@
             deviceToDelete = null;
         }
 
-        // Función para forzar pantalla completa en móvil
-        function requestFullscreen() {
-            // Verificar si estamos en un dispositivo móvil
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
-            if (isMobile) {
-                console.log('Dispositivo móvil detectado, solicitando pantalla completa...');
-                
-                // Intentar diferentes métodos de pantalla completa
-                const element = document.documentElement;
-                
-                if (element.requestFullscreen) {
-                    element.requestFullscreen().catch(err => {
-                        console.log('Error al solicitar pantalla completa:', err);
-                    });
-                } else if (element.webkitRequestFullscreen) {
-                    element.webkitRequestFullscreen();
-                } else if (element.msRequestFullscreen) {
-                    element.msRequestFullscreen();
-                } else if (element.mozRequestFullScreen) {
-                    element.mozRequestFullScreen();
-                }
-            }
-        }
-
-        // Solicitar pantalla completa al cargar la página
-        document.addEventListener('DOMContentLoaded', function() {
-            // Esperar un poco para que la página se cargue completamente
-            setTimeout(requestFullscreen, 1000);
-        });
-
-        // También intentar cuando el usuario interactúe con la página
-        document.addEventListener('click', function() {
-            requestFullscreen();
-        });
 
         // Cargar datos de Units y Dashboard al iniciar la página
         console.log('=== CARGANDO DATOS INICIALES DE UNITS ===');
