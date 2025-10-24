@@ -2,7 +2,11 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1e1e1e">
     <title>Elevator Control System - Sistema de Control de Elevadores</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -341,13 +345,14 @@
         .item-card {
             background: #1e1e1e;
             border-radius: 15px;
-            padding: 20px;
+            padding: 24px !important;
             margin-bottom: 18px !important;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
             color: white;
+            min-height: 180px !important;
         }
 
         .item-card:hover {
@@ -364,7 +369,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 15px;
+            margin-bottom: 18px !important;
         }
 
         .item-info {
@@ -476,7 +481,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 18px !important;
         }
 
         .item-location {
@@ -490,7 +495,7 @@
             background: #495057;
             border-radius: 2px;
             overflow: hidden;
-            margin-top: 10px;
+            margin-top: 12px !important;
         }
 
         .progress-fill {
@@ -1053,7 +1058,7 @@
                     <a href="#" class="view-all" onclick="showScreen('units-screen'); return false;">View All</a>
                 </div>
 
-                <div class="item-listings" id="dashboard-listings" style="margin-top: 370px; position: fixed; top: 7px; left: 20px; right: 20px; z-index: 40;">
+                <div class="item-listings" id="dashboard-listings" style="margin-top: 366px; position: fixed; top: 7px; left: 20px; right: 20px; z-index: 40;">
                     <!-- Activity items will be populated by JavaScript -->
                 </div>
 
@@ -1904,7 +1909,11 @@
         function createDeviceElevatorCard(device, index) {
             const card = document.createElement('div');
             card.className = `item-card ${index % 2 === 1 ? 'dark' : ''}`;
-            card.style.marginBottom = '18px';
+            card.style.cssText = `
+                margin-bottom: 18px !important;
+                min-height: 180px !important;
+                padding: 24px !important;
+            `;
             card.onclick = function() { openDeviceElevatorModal(device); };
             
             // Determinar estado basado en los datos del dispositivo
@@ -1916,7 +1925,7 @@
             const location = `${device.buildingName} - ${device.unitElevator}`;
             
             card.innerHTML = `
-                <div class="item-card-header">
+                <div class="item-card-header" style="margin-bottom: 18px !important;">
                     <div class="item-info">
                         <div class="item-icon">🏢</div>
                         <div class="item-details">
@@ -1931,11 +1940,11 @@
                     </button>
                 </div>
                 <div class="item-title">${elevatorName}</div>
-                <div class="item-meta">
+                <div class="item-meta" style="margin-bottom: 18px !important;">
                     <span class="item-location">${location}</span>
                     <span class="status-badge ${statusClass}">${status}</span>
                 </div>
-                <div class="progress-bar">
+                <div class="progress-bar" style="margin-top: 12px !important;">
                     <div class="progress-fill" style="width: 100%"></div>
                 </div>
             `;
@@ -4440,6 +4449,42 @@
             modal.style.display = 'none';
             deviceToDelete = null;
         }
+
+        // Función para forzar pantalla completa en móvil
+        function requestFullscreen() {
+            // Verificar si estamos en un dispositivo móvil
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                console.log('Dispositivo móvil detectado, solicitando pantalla completa...');
+                
+                // Intentar diferentes métodos de pantalla completa
+                const element = document.documentElement;
+                
+                if (element.requestFullscreen) {
+                    element.requestFullscreen().catch(err => {
+                        console.log('Error al solicitar pantalla completa:', err);
+                    });
+                } else if (element.webkitRequestFullscreen) {
+                    element.webkitRequestFullscreen();
+                } else if (element.msRequestFullscreen) {
+                    element.msRequestFullscreen();
+                } else if (element.mozRequestFullScreen) {
+                    element.mozRequestFullScreen();
+                }
+            }
+        }
+
+        // Solicitar pantalla completa al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Esperar un poco para que la página se cargue completamente
+            setTimeout(requestFullscreen, 1000);
+        });
+
+        // También intentar cuando el usuario interactúe con la página
+        document.addEventListener('click', function() {
+            requestFullscreen();
+        });
 
         // Cargar datos de Units y Dashboard al iniciar la página
         console.log('=== CARGANDO DATOS INICIALES DE UNITS ===');
