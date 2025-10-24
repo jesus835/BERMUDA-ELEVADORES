@@ -818,6 +818,13 @@
             color: #d63031 !important;
         }
 
+        .status-badge.alarm {
+            background: #f8d7da !important;
+            color: #721c24 !important;
+            border: 2px solid #e74c3c !important;
+            font-weight: 700 !important;
+        }
+
         .item-card.dark .status-badge.operational {
             background: #2d5a2d;
             color: #90ee90;
@@ -836,6 +843,13 @@
         .item-card.dark .status-badge.offline {
             background: #8b4513 !important;
             color: #ffa500 !important;
+        }
+
+        .item-card.dark .status-badge.alarm {
+            background: #5a1a1a !important;
+            color: #ff6b6b !important;
+            border: 2px solid #e74c3c !important;
+            font-weight: 700 !important;
         }
 
         .bookmark-btn {
@@ -1443,8 +1457,8 @@
                     <div class="profile-pic-large">A</div>
                 </div>
                 <div class="profile-modal-info">
-                    <h3>Admin User</h3>
-                    <p>admin@bermudaelevators.com</p>
+                    <h3 id="profile-user-name">User</h3>
+                    <p id="profile-user-email">user@example.com</p>
                 </div>
                 <button class="modal-close" onclick="closeProfileModal()">&times;</button>
             </div>
@@ -2438,7 +2452,7 @@
         }
 
         // Función para crear tarjeta de elevador desde datos de dispositivo
-        function createDeviceElevatorCard(device, index) {
+        async function createDeviceElevatorCard(device, index) {
             // Validar que el dispositivo no tenga datos corruptos
             if (!device || 
                 !device.deviceId || 
@@ -2458,18 +2472,16 @@
             `;
             card.onclick = function() { openDeviceElevatorModal(device); };
             
-            // Verificar si el dispositivo está offline (no en Firebase)
-            const isOffline = !device.firebaseConnected;
-            console.log(`Dispositivo ${device.deviceId} - firebaseConnected: ${device.firebaseConnected}, isOffline: ${isOffline}`);
-            
-            // Determinar estado basado en si está offline o no
-            const status = isOffline ? 'offline' : 'operational';
-            const statusClass = isOffline ? 'offline' : 'operational';
-            
             // Crear nombre del elevador basado en el dispositivo
             const elevatorName = `Elevator ${device.deviceId}`;
             const location = `${device.buildingName} - ${device.unitElevator}`;
             
+            // Mostrar estado inicial (operational por defecto)
+            let status = 'operational';
+            let statusClass = 'operational';
+            let progressColor = '#27ae60';
+            
+            // Crear HTML inicial
             card.innerHTML = `
                 <div class="item-card-header" style="margin-bottom: 18px !important;">
                     <div class="item-info">
@@ -2491,9 +2503,47 @@
                     <span class="status-badge ${statusClass}">${status}</span>
                 </div>
                 <div class="progress-bar" style="margin-top: 12px !important;">
-                    <div class="progress-fill" style="width: 100%; background-color: ${isOffline ? '#e67e22' : '#27ae60'};"></div>
+                    <div class="progress-fill" style="width: 100%; background-color: ${progressColor};"></div>
                 </div>
             `;
+            
+            // Consultar Firebase para obtener datos de alarmas en tiempo real
+            try {
+                const firebaseResponse = await fetch('https://logging-inputs-default-rtdb.firebaseio.com/.json');
+                const firebaseData = await firebaseResponse.json();
+                
+                // Buscar el dispositivo específico en Firebase
+                const firebaseDevice = firebaseData.devices[device.deviceId];
+                
+                if (firebaseDevice) {
+                    // Verificar si hay alarmas activas
+                    const hasAlarm = firebaseDevice.OUT_OF_SERVICE || firebaseDevice.FIRE_SERVICE || 
+                                   firebaseDevice.PHONE_COMM || firebaseDevice.PIT_FLOODED;
+                    
+                    if (hasAlarm) {
+                        status = 'ALARM';
+                        statusClass = 'alarm';
+                        progressColor = '#e74c3c';
+                    }
+                } else {
+                    // Si no se encuentra en Firebase, mostrar offline
+                    status = 'offline';
+                    statusClass = 'offline';
+                    progressColor = '#e67e22';
+                }
+                
+                // Actualizar el HTML con el estado correcto
+                const statusBadge = card.querySelector('.status-badge');
+                const progressFill = card.querySelector('.progress-fill');
+                
+                statusBadge.textContent = status;
+                statusBadge.className = `status-badge ${statusClass}`;
+                progressFill.style.backgroundColor = progressColor;
+                
+            } catch (error) {
+                console.error('Error consultando Firebase para alarmas:', error);
+                // Mantener estado operacional por defecto si hay error
+            }
             
             return card;
         }
@@ -2537,30 +2587,44 @@
                     });
                     timestamp.textContent = `Last Update: ${lastUpdate}`;
                     
+                    // Verificar si hay alarmas críticas
+                    const hasAlarm = firebaseDevice.OUT_OF_SERVICE || firebaseDevice.FIRE_SERVICE || 
+                                   firebaseDevice.PHONE_COMM || firebaseDevice.PIT_FLOODED;
+                    
+                    // Aplicar borde rojo al modal si hay alarmas
+                    const modalContent = modal.querySelector('.modal-content');
+                    if (hasAlarm) {
+                        modalContent.style.border = '3px solid #e74c3c';
+                        modalContent.style.boxShadow = '0 10px 30px rgba(231, 76, 60, 0.4)';
+                    } else {
+                        modalContent.style.border = 'none';
+                        modalContent.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
+                    }
+                    
                     // Actualizar estados con datos reales de Firebase
                     statusesContainer.innerHTML = `
-                        <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
+                        <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${firebaseDevice.OUT_OF_SERVICE ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
                             <span>Out of Service</span>
                             <span class="${firebaseDevice.OUT_OF_SERVICE ? 'true' : 'false'}" style="color: ${firebaseDevice.OUT_OF_SERVICE ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                ${firebaseDevice.OUT_OF_SERVICE ? 'ACTIVE' : 'NORMAL'}
+                                ${firebaseDevice.OUT_OF_SERVICE ? '🔥 ALARM' : 'NORMAL'}
                             </span>
                         </div>
-                        <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
+                        <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${firebaseDevice.FIRE_SERVICE ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
                             <span>Fire Service</span>
                             <span class="${firebaseDevice.FIRE_SERVICE ? 'true' : 'false'}" style="color: ${firebaseDevice.FIRE_SERVICE ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                ${firebaseDevice.FIRE_SERVICE ? 'ACTIVE' : 'NORMAL'}
+                                ${firebaseDevice.FIRE_SERVICE ? '🔥 ALARM' : 'NORMAL'}
                             </span>
                         </div>
-                        <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
+                        <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${firebaseDevice.PHONE_COMM ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
                             <span>Phone Comm</span>
                             <span class="${firebaseDevice.PHONE_COMM ? 'true' : 'false'}" style="color: ${firebaseDevice.PHONE_COMM ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                ${firebaseDevice.PHONE_COMM ? 'ACTIVE' : 'NORMAL'}
+                                ${firebaseDevice.PHONE_COMM ? '🔥 ALARM' : 'NORMAL'}
                             </span>
                         </div>
-                        <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
+                        <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${firebaseDevice.PIT_FLOODED ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
                             <span>Pit Flooded</span>
                             <span class="${firebaseDevice.PIT_FLOODED ? 'true' : 'false'}" style="color: ${firebaseDevice.PIT_FLOODED ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                ${firebaseDevice.PIT_FLOODED ? 'ACTIVE' : 'NORMAL'}
+                                ${firebaseDevice.PIT_FLOODED ? '🔥 ALARM' : 'NORMAL'}
                             </span>
                         </div>
                         <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
@@ -2869,10 +2933,13 @@
                     console.log(`Mostrando ${Math.min(devicesWithStatus.length, 1)} dispositivos en el dashboard`);
                     
                     // Mostrar solo el primer dispositivo válido
-                    devicesWithStatus.slice(0, 1).forEach((device, index) => {
-                        const card = createDeviceElevatorCard(device, index);
-                container.appendChild(card);
-            });
+                    for (let index = 0; index < Math.min(devicesWithStatus.length, 1); index++) {
+                        const device = devicesWithStatus[index];
+                        const card = await createDeviceElevatorCard(device, index);
+                        if (card) {
+                            container.appendChild(card);
+                        }
+                    }
                     
                     // Si no hay dispositivos válidos, mostrar mensaje específico
                     if (validDevices.length === 0) {
@@ -3065,16 +3132,17 @@
                     }));
 
                     // Mostrar todos los dispositivos válidos
-                    devicesWithStatus.forEach((device, index) => {
+                    for (let index = 0; index < devicesWithStatus.length; index++) {
+                        const device = devicesWithStatus[index];
                         console.log(`Creando tarjeta para dispositivo ${index + 1}:`, device);
-                        const card = createDeviceElevatorCard(device, index);
+                        const card = await createDeviceElevatorCard(device, index);
                         if (card) {
                             container.appendChild(card);
                             console.log(`Tarjeta ${index + 1} agregada al contenedor`);
                         } else {
                             console.log(`Tarjeta ${index + 1} omitida por datos corruptos`);
                         }
-                    });
+                    }
                     
                     // Si no hay dispositivos válidos, mostrar mensaje específico
                     if (validDevices.length === 0) {
@@ -6138,14 +6206,16 @@
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
             
             // Actualizar información del usuario en el modal
-            const userName = document.querySelector('.profile-modal-info h3');
-            const userEmail = document.querySelector('.profile-modal-info p');
+            const userName = document.getElementById('profile-user-name');
+            const userEmail = document.getElementById('profile-user-email');
             
             if (userName && userEmail) {
-                // Mostrar el rol del usuario en lugar del correo
+                // Mostrar el rol del usuario
                 const roleText = getRoleDisplayText(currentUser.role);
                 userName.textContent = roleText;
-                userEmail.textContent = currentUser.email || 'admin@bermudaelevators.com';
+                
+                // Mostrar el email del usuario actual
+                userEmail.textContent = currentUser.email || 'No email available';
             }
             
             modal.style.display = 'flex';
