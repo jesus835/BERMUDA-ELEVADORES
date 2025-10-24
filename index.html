@@ -3306,7 +3306,7 @@
             console.log('=== CARGANDO DISPOSITIVOS PARA SERVICIO ===');
             
             // Obtener usuario actual
-            const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
             console.log('Usuario actual para Service:', currentUser);
             
             const select = document.getElementById('serviceDeviceSelect');
@@ -3548,7 +3548,7 @@
             console.log('=== ACTUALIZANDO TODAS LAS APIs ===');
             
             // Obtener usuario actual
-            const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
             
             const button = document.getElementById('refresh-all-btn');
             const svg = button.querySelector('svg');
@@ -3620,7 +3620,7 @@
                 console.log('=== CARGANDO EDIFICIOS DEL USUARIO ===');
                 
                 // Obtener usuario actual
-                const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                 if (!currentUser.email) {
                     console.log('No hay usuario logueado');
                     return;
@@ -3697,7 +3697,7 @@
             }
             
             // Obtener usuario actual
-            const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
             
             // Cargar datos y aplicar filtros
             loadUnitsData(null, currentUser).then(() => {
@@ -3774,7 +3774,7 @@
             if (!searchTerm || searchTerm.trim() === '') {
                 console.log('Término de búsqueda vacío, mostrando todos los dispositivos');
                 // Obtener usuario actual y mostrar todos los dispositivos
-                const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                 loadUnitsData(null, currentUser);
                 return;
             }
@@ -3788,7 +3788,7 @@
                 container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6c757d;">Cargando dispositivos para búsqueda...</div>';
                 
                 // Cargar datos y luego filtrar
-                const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                 loadUnitsData(null, currentUser).then(() => {
                     console.log('Datos cargados, aplicando filtro...');
                     // Después de cargar, aplicar el filtro
@@ -4261,7 +4261,7 @@
             
             // Recargar datos de Units y Dashboard después de agregar dispositivo
             setTimeout(() => {
-                const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                 console.log('Recargando datos de Units después de agregar dispositivo...');
                 loadUnitsData(null, currentUser).catch(error => {
                     console.error('Error al recargar Units después de agregar:', error);
@@ -4474,13 +4474,10 @@
             userMsg.className = 'info';
             
             try {
-                // Generar identificador único para el correo
-                const uniqueEmail = generateUniqueEmail(email);
-                
-                // Preparar datos para enviar
+                // Usar el email original para usuarios (no necesitan ID único)
                 const userData = {
                     nombre: password,
-                    correo: uniqueEmail,
+                    correo: email,
                     role: roleType.charAt(0).toUpperCase() + roleType.slice(1),
                     buildings: buildings,
                     action: 'add_user',
@@ -4494,7 +4491,7 @@
                 const tbody = document.querySelector('#rolesTable tbody');
                 const newRow = document.createElement('tr');
                 newRow.setAttribute('data-user', password);
-                newRow.setAttribute('data-user-email', uniqueEmail);
+                newRow.setAttribute('data-user-email', email);
                 newRow.setAttribute('data-buildings', buildings);
                 newRow.innerHTML = `
                     <td><code>${password}</code></td>
@@ -4503,12 +4500,8 @@
                 `;
                 tbody.appendChild(newRow);
                 
-                // Mostrar mensaje con el identificador único
-                if (uniqueEmail !== email) {
-                    userMsg.textContent = `✅Usuario agregado exitosamente! (ID: ${uniqueEmail})`;
-                } else {
-                    userMsg.textContent = '✅Usuario agregado exitosamente!';
-                }
+                // Mostrar mensaje de éxito
+                userMsg.textContent = '✅Usuario agregado exitosamente!';
                 
                 userMsg.className = 'success';
                 
@@ -4577,13 +4570,10 @@
             userMsg.className = 'info';
             
             try {
-                // Generar identificador único para el correo
-                const uniqueEmail = generateUniqueEmail(email);
-                
-                // Preparar datos para enviar (ajustado al script de Google Apps)
+                // Usar el email original para usuarios (no necesitan ID único)
                 const userData = {
                     nombre: password, // El script espera 'nombre' como primer campo
-                    correo: uniqueEmail,    // Usar el email único
+                    correo: email,    // Usar el email original
                     role: roleType.charAt(0).toUpperCase() + roleType.slice(1),
                     buildings: buildings,
                     action: 'add_user',
@@ -4597,7 +4587,7 @@
                 const tbody = document.querySelector('#rolesTable tbody');
                 const newRow = document.createElement('tr');
                 newRow.setAttribute('data-user', password);
-                newRow.setAttribute('data-user-email', uniqueEmail);
+                newRow.setAttribute('data-user-email', email);
                 newRow.setAttribute('data-buildings', buildings);
                 newRow.innerHTML = `
                         <td><code>${password}</code></td>
@@ -4635,7 +4625,7 @@
                     const tbody = document.querySelector('#rolesTable tbody');
                     const newRow = document.createElement('tr');
                     newRow.setAttribute('data-user', password);
-                    newRow.setAttribute('data-user-email', uniqueEmail);
+                    newRow.setAttribute('data-user-email', email);
                     newRow.setAttribute('data-buildings', buildings);
                     newRow.innerHTML = `
                         <td><code>${password}</code></td>
@@ -4905,7 +4895,7 @@
                 document.getElementById('buildingFilter').value = 'all';
                 
                 // Mostrar todos los dispositivos
-                const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                 loadUnitsData(null, currentUser);
             });
 
@@ -5649,7 +5639,7 @@
             
             // Recargar datos de Units y Dashboard después de eliminar dispositivo
             setTimeout(() => {
-                const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                 console.log('Recargando datos de Units después de eliminar dispositivo...');
                 loadUnitsData(null, currentUser).catch(error => {
                     console.error('Error al recargar Units después de eliminar:', error);
@@ -5964,13 +5954,16 @@
                 console.log('=== LOGIN EXITOSO ===');
                 console.log('Usuario autenticado:', user);
                 
-                // Guardar información del usuario en sessionStorage
-                sessionStorage.setItem('currentUser', JSON.stringify({
+                // Guardar información del usuario en localStorage para persistencia
+                localStorage.setItem('currentUser', JSON.stringify({
                     email: user.Email,
                     password: user.Contraseña,
                     role: user.role,
                     buildings: user.builds
                 }));
+                
+                // Guardar timestamp de la sesión para control de expiración
+                localStorage.setItem('sessionTimestamp', Date.now().toString());
                 
                 // Ocultar login y mostrar pantalla de carga
                 document.getElementById('login-screen').style.display = 'none';
@@ -6044,7 +6037,7 @@
             
             try {
                 // Obtener información del usuario actual
-                const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                 console.log('Usuario actual:', currentUser);
                 
                 // Actualizar texto de carga
@@ -6142,7 +6135,7 @@
             const modal = document.getElementById('profile-modal');
             
             // Obtener información del usuario actual
-            const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
             
             // Actualizar información del usuario en el modal
             const userName = document.querySelector('.profile-modal-info h3');
@@ -6206,7 +6199,15 @@
         // Confirmar logout
         function confirmLogout() {
             // Limpiar información del usuario
-            sessionStorage.removeItem('currentUser');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('sessionTimestamp');
+            
+            // Limpiar caché de datos de usuarios para forzar recarga en próximo login
+            localStorage.removeItem('usersData');
+            localStorage.removeItem('usersDataTimestamp');
+            
+            // Limpiar historial de servicios (opcional - comentado para mantener historial)
+            // localStorage.removeItem('serviceHistory');
             
             // Ocultar app y mostrar login
             document.getElementById('main-app').style.display = 'none';
@@ -6225,7 +6226,7 @@
             // Cerrar modal de logout
             closeLogoutModal();
             
-            console.log('Usuario cerró sesión');
+            console.log('Usuario cerró sesión - datos limpiados');
         }
 
         // Cerrar modal al hacer clic fuera
@@ -6244,7 +6245,7 @@
 
         // Función para controlar la visibilidad de elementos de navegación basada en el rol
         function setupNavigationPermissions() {
-            const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
             console.log('Configurando permisos de navegación para:', currentUser.role);
             
             // Obtener todos los elementos de navegación
@@ -6292,7 +6293,7 @@
 
         // Función para verificar si una pantalla está permitida para el usuario actual
         function isScreenAllowed(screenName) {
-            const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
             
             switch (currentUser.role) {
                 case 'Admin':
@@ -6308,7 +6309,7 @@
 
         // Función para obtener la primera pantalla permitida para el usuario
         function getFirstAllowedScreen() {
-            const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
             
             switch (currentUser.role) {
                 case 'Admin':
@@ -6322,10 +6323,16 @@
             }
         }
 
+        // Verificar si la sesión ha expirado (DESHABILITADO - sesión permanente)
+        function isSessionExpired() {
+            // La sesión nunca expira - siempre retorna false
+            return false;
+        }
+
         // Verificar autenticación al cargar la página
         function checkAuthentication() {
             console.log('=== VERIFICANDO AUTENTICACIÓN ===');
-            const currentUser = sessionStorage.getItem('currentUser');
+            const currentUser = localStorage.getItem('currentUser');
             
             if (currentUser) {
                 console.log('Usuario ya autenticado:', JSON.parse(currentUser));
