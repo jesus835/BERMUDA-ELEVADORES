@@ -89,12 +89,5 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Notificar actualizaciones
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  event.waitUntil(
-    clients.openWindow('/')
-  );
-});
 
 console.log('🚀 Bermuda Elevators Service Worker cargado');
