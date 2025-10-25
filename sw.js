@@ -89,82 +89,12 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// PUSH API - Manejar notificaciones push
-self.addEventListener('push', event => {
-  console.log('🔔 Push recibido:', event);
-  
-  let notificationData = {
-    title: 'Bermuda Elevators',
-    body: 'Nueva alerta detectada',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png'
-  };
-
-  // Si hay datos en el push
-  if (event.data) {
-    try {
-      const data = event.data.json();
-      notificationData = {
-        title: data.title || 'Bermuda Elevators',
-        body: data.body || 'Nueva alerta detectada',
-        icon: '/icon-192.png',
-        badge: '/icon-192.png',
-        data: data.data || {}
-      };
-    } catch (error) {
-      console.log('Error parseando push data:', error);
-    }
-  }
-
-  const options = {
-    body: notificationData.body,
-    icon: notificationData.icon,
-    badge: notificationData.badge,
-    vibrate: [200, 100, 200],
-    data: notificationData.data,
-    actions: [
-      {
-        action: 'open',
-        title: 'Abrir App'
-      },
-      {
-        action: 'close',
-        title: 'Cerrar'
-      }
-    ],
-    requireInteraction: true,
-    silent: false
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(notificationData.title, options)
-  );
-});
-
-// PUSH API - Manejar clicks en notificaciones
-self.addEventListener('notificationclick', event => {
-  console.log('🔔 Notificación clickeada:', event);
-  
+// Notificar actualizaciones
+self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  
-  if (event.action === 'open') {
-    event.waitUntil(
-      clients.openWindow('/')
-    );
-  } else if (event.action === 'close') {
-    // Solo cerrar, no hacer nada más
-    console.log('Notificación cerrada por usuario');
-  } else {
-    // Click en la notificación (no en botones)
-    event.waitUntil(
-      clients.openWindow('/')
-    );
-  }
-});
-
-// PUSH API - Manejar cierre de notificaciones
-self.addEventListener('notificationclose', event => {
-  console.log('🔔 Notificación cerrada:', event);
+  event.waitUntil(
+    clients.openWindow('/')
+  );
 });
 
 console.log('🚀 Bermuda Elevators Service Worker cargado');
