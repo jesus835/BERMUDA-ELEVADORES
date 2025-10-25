@@ -88,6 +88,17 @@
             gap: 15px;
         }
 
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-logo {
+            height: 80px;
+            width: auto;
+            object-fit: contain;
+        }
+
         .header-center {
             flex: 1;
             text-align: center;
@@ -528,7 +539,7 @@
             text-align: left;
             margin-bottom: 30px;
             position: fixed;
-            top: 12%;
+            top: 14%;
             left: 0;
             right: 0;
             z-index: 100;
@@ -1729,6 +1740,11 @@
                             <path d="M21 2v6h-6M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M3 22v-6h6M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
                         </svg>
                     </button>
+                </div>
+                <div class="header-center">
+                    <div class="logo-container">
+                        <img src="https://i.imgur.com/A6T3whG.png" alt="Bermuda Elevators" class="header-logo">
+                    </div>
                 </div>
                 <div class="header-right">
                     <button class="icon-btn">
@@ -3278,6 +3294,14 @@
                     });
                     console.log('Datos limpios guardados en allDevicesData para búsqueda');
                     
+                    // Guardar en localStorage para búsquedas rápidas
+                    try {
+                        localStorage.setItem('cachedDevices', JSON.stringify(allDevicesData));
+                        console.log(`✅ Cache guardado: ${allDevicesData.length} dispositivos en localStorage`);
+                    } catch (error) {
+                        console.error('Error guardando cache en localStorage:', error);
+                    }
+                    
                     // Limpiar contenedor
                     container.innerHTML = '';
                     console.log('Contenedor limpiado');
@@ -4186,10 +4210,6 @@
             console.log('=== FILTRANDO DISPOSITIVOS ===');
             console.log('Término de búsqueda:', searchTerm);
             
-            // Navegar a la sección Units primero
-            console.log('Navegando a la sección Units...');
-            showScreen('units-screen');
-            
             const container = document.getElementById('units-grid');
             if (!container) {
                 console.error('No se encontró el contenedor units-grid');
@@ -4197,18 +4217,56 @@
             }
 
             if (!searchTerm || searchTerm.trim() === '') {
-                console.log('Término de búsqueda vacío, mostrando todos los dispositivos');
-                // Obtener usuario actual y mostrar todos los dispositivos
+                console.log('Término de búsqueda vacío, recargando todos los dispositivos silenciosamente');
+                // Recarga silenciosa sin navegar a Units
                 const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                 loadUnitsData(null, currentUser);
                 return;
             }
 
+            // Navegar a la sección Units solo si hay búsqueda
+            console.log('Navegando a la sección Units...');
+            showScreen('units-screen');
+
             console.log('Filtrando dispositivos con término:', searchTerm);
             
-            // Verificar si tenemos datos disponibles
+            // 1. PRIMERO: Buscar en localStorage para búsqueda rápida
+            const cachedDevices = localStorage.getItem('cachedDevices');
+            if (cachedDevices) {
+                try {
+                    const devices = JSON.parse(cachedDevices);
+                    console.log(`Búsqueda rápida en cache: ${devices.length} dispositivos disponibles`);
+                    
+                    const filteredDevices = devices.filter(device => {
+                        const deviceId = String(device.deviceId || '').toLowerCase();
+                        const building = String(device.buildingName || '').toLowerCase();
+                        const unit = String(device.unitElevator || '').toLowerCase();
+                        const email = String(device.clientEmail || '').toLowerCase();
+                        
+                        return deviceId.includes(searchTerm) ||
+                               building.includes(searchTerm) ||
+                               unit.includes(searchTerm) ||
+                               email.includes(searchTerm);
+                    });
+
+                    console.log(`Encontrados ${filteredDevices.length} dispositivos en cache que coinciden con "${searchTerm}"`);
+                    
+                    if (filteredDevices.length > 0) {
+                        // Mostrar resultados inmediatos del cache
+                        displayFilteredDevices(filteredDevices);
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error parseando cache:', error);
+                }
+            }
+            
+            // 2. SEGUNDO: Si no hay cache o no hay resultados, cargar desde API
+            console.log('No hay resultados en cache, cargando desde API...');
+            
+            // Verificar si tenemos datos disponibles en memoria
             if (!allDevicesData || allDevicesData.length === 0) {
-                console.log('No hay datos disponibles, cargando desde la API...');
+                console.log('No hay datos en memoria, cargando desde la API...');
                 // Mostrar mensaje de carga
                 container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6c757d;">Cargando dispositivos para búsqueda...</div>';
                 
@@ -4251,13 +4309,55 @@
             }
 
             // Mostrar dispositivos filtrados
-            filteredDevices.forEach((device, index) => {
+            filteredDevices.forEach(async (device, index) => {
                 console.log(`Mostrando dispositivo filtrado ${index + 1}:`, device);
-                const card = createDeviceElevatorCard(device, index);
-                container.appendChild(card);
+                try {
+                    const card = await createDeviceElevatorCard(device, index);
+                    if (card && card instanceof Node) {
+                        container.appendChild(card);
+                    } else {
+                        console.error('Error: createDeviceElevatorCard no devolvió un nodo válido para:', device);
+                    }
+                } catch (error) {
+                    console.error('Error creando tarjeta para dispositivo:', device, error);
+                }
             });
 
             console.log('=== FILTRADO COMPLETADO ===');
+        }
+
+        // Función para mostrar dispositivos filtrados
+        function displayFilteredDevices(filteredDevices) {
+            const container = document.getElementById('units-grid');
+            if (!container) {
+                console.error('No se encontró el contenedor units-grid');
+                return;
+            }
+
+            if (filteredDevices.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6c757d;">No se encontraron dispositivos que coincidan con la búsqueda</div>';
+                return;
+            }
+
+            // Limpiar contenedor
+            container.innerHTML = '';
+
+            // Mostrar dispositivos filtrados
+            filteredDevices.forEach(async (device, index) => {
+                console.log(`Mostrando dispositivo filtrado ${index + 1}:`, device);
+                try {
+                    const card = await createDeviceElevatorCard(device, index);
+                    if (card && card instanceof Node) {
+                        container.appendChild(card);
+                    } else {
+                        console.error('Error: createDeviceElevatorCard no devolvió un nodo válido para:', device);
+                    }
+                } catch (error) {
+                    console.error('Error creando tarjeta para dispositivo:', device, error);
+                }
+            });
+
+            console.log(`Mostrando ${filteredDevices.length} dispositivos filtrados`);
         }
 
 
@@ -5256,6 +5356,41 @@
             event.target.classList.add('active');
         }
 
+        // Función para agregar event listeners de búsqueda
+        function addSearchEventListeners() {
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            
+            if (searchInput && !searchInput.hasAttribute('data-listener-added')) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const searchTerm = this.value.toLowerCase();
+                        filterElevators(searchTerm);
+                    }
+                });
+                
+                // Detectar cuando se limpia el input
+                searchInput.addEventListener('input', function(e) {
+                    if (this.value.trim() === '') {
+                        console.log('Input de búsqueda limpiado, recargando todos los dispositivos');
+                        filterElevators('');
+                    }
+                });
+                
+                searchInput.setAttribute('data-listener-added', 'true');
+                console.log('✅ Event listener agregado al input de búsqueda');
+            }
+
+            if (searchBtn && !searchBtn.hasAttribute('data-listener-added')) {
+                searchBtn.addEventListener('click', function() {
+                    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+                    filterElevators(searchTerm);
+                });
+                searchBtn.setAttribute('data-listener-added', 'true');
+                console.log('✅ Event listener agregado al botón de búsqueda');
+            }
+        }
+
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
             
@@ -5264,19 +5399,8 @@
                 pill.addEventListener('click', handleFilterClick);
             });
             
-            // Búsqueda
-            document.getElementById('search-input').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    const searchTerm = this.value.toLowerCase();
-                    filterElevators(searchTerm);
-                }
-            });
-
-            // Botón de búsqueda
-            document.getElementById('search-btn').addEventListener('click', function() {
-                const searchTerm = document.getElementById('search-input').value.toLowerCase();
-                filterElevators(searchTerm);
-            });
+            // Agregar event listeners de búsqueda inicialmente
+            addSearchEventListeners();
             
             // Botón de filtro - abrir modal (primer botón del header-right)
             document.querySelector('.header-right .icon-btn').addEventListener('click', function() {
@@ -5502,6 +5626,8 @@
                 case 'dashboard-screen':
                     console.log('=== NAVEGANDO A PANTALLA DE DASHBOARD ===');
                     // Los datos ya están cargados desde el inicio de la página
+                    // Agregar event listeners de búsqueda
+                    addSearchEventListeners();
                     break;
                 case 'units-screen':
                     console.log('=== NAVEGANDO A PANTALLA DE UNIDADES ===');
