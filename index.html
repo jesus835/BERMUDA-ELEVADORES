@@ -2561,8 +2561,10 @@
             // Actualizar título
             title.textContent = elevatorName;
             
+            // Iniciar timestamp dinámico
+            startDynamicTimestamp();
+            
             // Mostrar indicador de carga
-            timestamp.textContent = 'Loading real-time data...';
             statusesContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #6c757d;">Loading device status...</div>';
             
             // Mostrar el modal
@@ -2577,16 +2579,7 @@
                     const deviceData = data.data.find(d => d.device_id === device.deviceId);
                     
                     if (deviceData) {
-                        // Actualizar timestamp con datos reales
-                        const lastUpdate = new Date(deviceData.timestamp).toLocaleString('es-ES', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit'
-                        });
-                        timestamp.textContent = `Last Update: ${lastUpdate}`;
+                        // El timestamp se actualiza dinámicamente cada segundo
                         
                         // Verificar si hay alarmas críticas
                         const hasAlarm = deviceData.OUT_OF_SERVICE || deviceData.FIRE_SERVICE || 
@@ -2643,7 +2636,7 @@
                         `;
                     } else {
                         // Si no se encuentra el dispositivo, mostrar estado offline
-                        timestamp.textContent = `Last Update: Device Offline`;
+                        // El timestamp se actualiza dinámicamente cada segundo
                         
                         statusesContainer.innerHTML = `
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
@@ -2755,15 +2748,47 @@
             bookmarkBtn.classList.toggle('active');
         }
 
+        // Variable para controlar si el modal está abierto
+        let isModalOpen = false;
+
+        // Función para actualizar el timestamp con la hora actual
+        function updateTimestamp() {
+            const timestampElement = document.getElementById('elevator-timestamp');
+            if (timestampElement && isModalOpen) {
+                const now = new Date();
+                const localTime = now.toLocaleString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                timestampElement.textContent = `Last Update: ${localTime}`;
+            }
+        }
+
+        // Función para iniciar el timestamp dinámico (solo actualizar una vez al abrir)
+        function startDynamicTimestamp() {
+            isModalOpen = true;
+            updateTimestamp();
+        }
+
+        // Función para detener el timestamp dinámico
+        function stopDynamicTimestamp() {
+            isModalOpen = false;
+        }
+
         // Función para abrir modal del elevador
         function openElevatorModal(elevator) {
             document.getElementById('elevator-title').textContent = elevator.name;
-            document.getElementById('elevator-timestamp').textContent = `Last Update: ${new Date().toLocaleString()}`;
+            startDynamicTimestamp();
             document.getElementById('elevator-modal').style.display = 'flex';
         }
 
         // Función para cerrar modal del elevador
         function closeElevatorModal() {
+            stopDynamicTimestamp();
             document.getElementById('elevator-modal').style.display = 'none';
         }
 
@@ -3610,6 +3635,9 @@
                     }
                     
                     console.log('=== TARJETAS ACTUALIZADAS EXITOSAMENTE ===');
+                    
+                    // Actualizar timestamp si el modal está abierto
+                    updateTimestamp();
                 }
             } catch (error) {
                 console.error('Error actualizando tarjetas existentes:', error);
@@ -4611,18 +4639,26 @@
                     // Extraer todos los emails de dispositivos de la API
                     const existingEmails = data.data
                         .map(device => device.clientEmail)
-                        .filter(email => email && email.startsWith(baseEmail));
+                        .filter(email => email && email !== -1 && email !== '-1');
                     
-                    console.log(`Emails existentes en API:`, existingEmails);
+                    console.log(`Todos los emails existentes en API:`, existingEmails);
                     
-                    if (existingEmails.length > 0) {
+                    // Buscar emails que coincidan con el patrón base-XX
+                    const baseEmailPattern = new RegExp(`^${baseEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(-\\d+)?$`);
+                    const matchingEmails = existingEmails.filter(email => baseEmailPattern.test(email));
+                    
+                    console.log(`Emails que coinciden con el patrón:`, matchingEmails);
+                    
+                    if (matchingEmails.length > 0) {
                         // Buscar el siguiente número disponible
-                        while (existingEmails.includes(`${baseEmail}-${counter.toString().padStart(2, '0')}`)) {
+                        while (matchingEmails.includes(`${baseEmail}-${counter}`)) {
                             counter++;
                         }
                         
-                        uniqueEmail = `${baseEmail}-${counter.toString().padStart(2, '0')}`;
+                        uniqueEmail = `${baseEmail}-${counter}`;
                         console.log(`Email único generado: ${uniqueEmail}`);
+                    } else {
+                        console.log(`No se encontraron emails duplicados, usando email base: ${baseEmail}`);
                     }
                 } else {
                     console.log('No se pudieron obtener datos de la API, usando email base');
