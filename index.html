@@ -5356,6 +5356,9 @@
             event.target.classList.add('active');
         }
 
+        // Variable para rastrear si se presionó el botón de búsqueda
+        let searchButtonPressed = false;
+
         // Función para agregar event listeners de búsqueda
         function addSearchEventListeners() {
             const searchInput = document.getElementById('search-input');
@@ -5366,17 +5369,10 @@
                     if (e.key === 'Enter') {
                         const searchTerm = this.value.toLowerCase();
                         filterElevators(searchTerm);
+                        // Marcar que se hizo búsqueda
+                        searchButtonPressed = true;
                     }
                 });
-                
-                // Detectar cuando se limpia el input
-                searchInput.addEventListener('input', function(e) {
-                    if (this.value.trim() === '') {
-                        console.log('Input de búsqueda limpiado, recargando todos los dispositivos');
-                        filterElevators('');
-                    }
-                });
-                
                 searchInput.setAttribute('data-listener-added', 'true');
                 console.log('✅ Event listener agregado al input de búsqueda');
             }
@@ -5385,6 +5381,12 @@
                 searchBtn.addEventListener('click', function() {
                     const searchTerm = document.getElementById('search-input').value.toLowerCase();
                     filterElevators(searchTerm);
+                    // Limpiar el input después de buscar
+                    document.getElementById('search-input').value = '';
+                    // Marcar que se presionó el botón de búsqueda
+                    searchButtonPressed = true;
+                    console.log('🔍 Búsqueda realizada y input limpiado');
+                    console.log('🚩 searchButtonPressed =', searchButtonPressed);
                 });
                 searchBtn.setAttribute('data-listener-added', 'true');
                 console.log('✅ Event listener agregado al botón de búsqueda');
@@ -5631,15 +5633,31 @@
                     break;
                 case 'units-screen':
                     console.log('=== NAVEGANDO A PANTALLA DE UNIDADES ===');
-                    // Los datos ya están cargados desde el inicio de la página
+                    console.log('🚩 Estado de searchButtonPressed:', searchButtonPressed);
+                    // Solo recargar si se presionó el botón de búsqueda antes
+                    if (searchButtonPressed) {
+                        console.log('✅ Se detectó búsqueda previa, recargando todos los dispositivos');
+                        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                        loadUnitsData(null, currentUser);
+                        // Resetear la bandera DESPUÉS de recargar
+                        searchButtonPressed = false;
+                        console.log('🔄 searchButtonPressed reseteado a:', searchButtonPressed);
+                    } else {
+                        console.log('❌ No hay búsqueda previa, manteniendo dispositivos actuales');
+                    }
                     break;
                 case 'service-screen':
                     console.log('=== NAVEGANDO A PANTALLA DE SERVICIO ===');
+                    console.log('🚩 Reseteando searchButtonPressed desde service-screen');
+                    // Resetear bandera de búsqueda al salir de Units
+                    searchButtonPressed = false;
                     // Cargar dispositivos para el select
                     loadServiceDevices();
                     break;
                 case 'reports-screen':
                     console.log('=== NAVEGANDO A PANTALLA DE REPORTES ===');
+                    // Resetear bandera de búsqueda al salir de Units
+                    searchButtonPressed = false;
                     // Cargar dispositivos para el select de reportes
                     loadReportDevices();
                     if (document.getElementById('reports-list').children.length === 0) {
@@ -5648,10 +5666,14 @@
                     break;
                 case 'devices-screen':
                     console.log('=== NAVEGANDO A PANTALLA DE DISPOSITIVOS ===');
+                    // Resetear bandera de búsqueda al salir de Units
+                    searchButtonPressed = false;
                     // No cargar datos automáticamente, solo cuando se abra el modal
                     break;
                 case 'users-screen':
                     console.log('=== NAVEGANDO A PANTALLA DE USUARIOS ===');
+                    // Resetear bandera de búsqueda al salir de Units
+                    searchButtonPressed = false;
                     // Verificar qué elementos existen en la pantalla de usuarios
                     const usersListElement = document.getElementById('users-list');
                     const rolesTableElement = document.getElementById('rolesTable');
