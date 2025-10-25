@@ -26,6 +26,20 @@
             box-sizing: border-box;
         }
 
+        /* Evitar pull-to-refresh y scroll no deseado */
+        html, body {
+            overscroll-behavior: contain;
+            touch-action: pan-x pan-y;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        body {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
             font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #f8f9fa;
@@ -37,6 +51,8 @@
             width: 100vw;
             height: 100vh;
             display: flex;
+            overflow: hidden;
+            position: relative;
             flex-direction: column;
             position: relative;
         }
@@ -495,18 +511,33 @@
         .main-content {
             flex: 1;
             padding: 20px;
+            /* Sin margin-top para que no se vea afectado */
+            margin-top: 0;
+            /* Scroll interno */
+            overflow-y: auto;
+            overflow-x: hidden;
+            height: 100vh;
+            /* Evitar pull-to-refresh */
+            overscroll-behavior: contain;
+            touch-action: pan-x pan-y;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Dashboard Styles */
         .hero-section {
             text-align: left;
             margin-bottom: 30px;
-            position: sticky;
-            top: 0;
-            z-index: 40;
-            background: #f8f9fa;
-            padding: 20px 0;
+            position: fixed;
+            top: 12%;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: transparent;
+            padding: 20px;
             margin-top: 0;
+            /* Evitar pull-to-refresh */
+            overscroll-behavior: contain;
+            touch-action: pan-x pan-y;
         }
 
         .hero-title {
