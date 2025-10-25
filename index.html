@@ -1744,6 +1744,12 @@
                             <line x1="17" y1="16" x2="23" y2="16"></line>
                         </svg>
                     </button>
+                    <button class="icon-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </button>
                     <div class="profile-pic profile-btn" title="Perfil de usuario" style="cursor: pointer;">
                         A
                     </div>
@@ -6816,18 +6822,14 @@
 
     </script>
 
-    <!-- PWA Service Worker + Push API -->
+    <!-- PWA Service Worker -->
     <script>
-        // VAPID Public Key
-        const VAPID_PUBLIC_KEY = 'BP9tERGLAHCk3jrMIXlRxDpvcsJdM7Lvr0RUgRRd5F-u3bamRLzpdryhr3wZPY6niab8lojRp3dvzrvTtCtHoz0';
-        
         // Registrar Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
                     .then((registration) => {
                         console.log('✅ Service Worker registrado:', registration.scope);
-                        
                         
                         // Verificar actualizaciones
                         registration.addEventListener('updatefound', () => {
@@ -6849,108 +6851,32 @@
             });
         }
 
-
-
         // Instalar PWA
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
-            console.log('📱 PWA puede ser instalada - MOSTRANDO NOTIFICACIÓN ELEGANTE');
+            console.log('📱 PWA puede ser instalada');
             e.preventDefault();
             deferredPrompt = e;
             
-            // Mostrar notificación de instalación elegante
-            const installNotification = document.createElement('div');
-            installNotification.innerHTML = `
-                <div style="
-                    position: fixed;
-                    bottom: 20px;
-                    left: 20px;
-                    right: 20px;
-                    background: #f8f9fa;
-                    border-radius: 16px;
-                    padding: 16px;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-                    z-index: 1000;
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255,255,255,0.2);
-                ">
-                    <div style="
-                        display: flex;
-                        align-items: center;
-                        gap: 12px;
-                        margin-bottom: 12px;
-                    ">
-                        <div style="
-                            width: 48px;
-                            height: 48px;
-                            background: #0b3d91;
-                            border-radius: 12px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 20px;
-                            color: white;
-                            font-weight: bold;
-                            flex-shrink: 0;
-                        ">
-                            📱
-                        </div>
-                        <div style="flex: 1; min-width: 0;">
-                            <div style="
-                                font-size: 16px;
-                                font-weight: 600;
-                                color: #2c3e50;
-                                line-height: 1.2;
-                                white-space: nowrap;
-                                overflow: hidden;
-                                text-overflow: ellipsis;
-                            ">
-                                Bermuda Elevators
-                            </div>
-                            <div style="
-                                font-size: 14px;
-                                color: #7f8c8d;
-                                line-height: 1.3;
-                                white-space: nowrap;
-                                overflow: hidden;
-                                text-overflow: ellipsis;
-                            ">
-                                Descarga La app Ahora
-                            </div>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                        <button id="install-dismiss" style="
-                            background: transparent;
-                            border: 1px solid #dee2e6;
-                            color: #6c757d;
-                            padding: 8px 12px;
-                            border-radius: 8px;
-                            font-size: 12px;
-                            cursor: pointer;
-                            transition: all 0.2s ease;
-                        ">
-                            Cerrar
-                        </button>
-                        <button id="install-accept" style="
-                            background: #0b3d91;
-                            border: none;
-                            color: white;
-                            padding: 8px 16px;
-                            border-radius: 8px;
-                            font-size: 12px;
-                            font-weight: 600;
-                            cursor: pointer;
-                            transition: all 0.2s ease;
-                        ">
-                            Instalar
-                        </button>
-                    </div>
-                </div>
+            // Mostrar botón de instalación (opcional)
+            const installButton = document.createElement('button');
+            installButton.textContent = '📱 Instalar App';
+            installButton.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: #0b3d91;
+                color: white;
+                border: none;
+                padding: 12px 20px;
+                border-radius: 8px;
+                font-size: 14px;
+                cursor: pointer;
+                z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             `;
             
-            // Event listeners
-            installNotification.querySelector('#install-accept').addEventListener('click', () => {
+            installButton.addEventListener('click', () => {
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
@@ -6959,47 +6885,17 @@
                         console.log('❌ Usuario rechazó instalar la PWA');
                     }
                     deferredPrompt = null;
-                    installNotification.remove();
+                    installButton.remove();
                 });
             });
             
-            installNotification.querySelector('#install-dismiss').addEventListener('click', () => {
-                installNotification.remove();
-            });
-            
-            // Hover effects
-            const acceptBtn = installNotification.querySelector('#install-accept');
-            const dismissBtn = installNotification.querySelector('#install-dismiss');
-            
-            acceptBtn.addEventListener('mouseenter', () => {
-                acceptBtn.style.background = '#0a2d6b';
-                acceptBtn.style.transform = 'translateY(-1px)';
-            });
-            
-            acceptBtn.addEventListener('mouseleave', () => {
-                acceptBtn.style.background = '#0b3d91';
-                acceptBtn.style.transform = 'translateY(0)';
-            });
-            
-            dismissBtn.addEventListener('mouseenter', () => {
-                dismissBtn.style.background = '#f8f9fa';
-                dismissBtn.style.borderColor = '#adb5bd';
-            });
-            
-            dismissBtn.addEventListener('mouseleave', () => {
-                dismissBtn.style.background = 'transparent';
-                dismissBtn.style.borderColor = '#dee2e6';
-            });
-            
-            document.body.appendChild(installNotification);
+            document.body.appendChild(installButton);
         });
 
         // PWA instalada
         window.addEventListener('appinstalled', (evt) => {
             console.log('🎉 PWA instalada exitosamente');
         });
-
-
     </script>
 </body>
 </html>
