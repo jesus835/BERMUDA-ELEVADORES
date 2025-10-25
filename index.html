@@ -1744,12 +1744,6 @@
                             <line x1="17" y1="16" x2="23" y2="16"></line>
                         </svg>
                     </button>
-                    <button class="icon-btn" id="notification-header-btn" title="Mostrar notificación de instalación">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                        </svg>
-                    </button>
                     <div class="profile-pic profile-btn" title="Perfil de usuario" style="cursor: pointer;">
                         A
                     </div>
@@ -6919,7 +6913,7 @@
                 // Crear formulario oculto para enviar la suscripción
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = 'https://script.google.com/macros/s/AKfycbzI0XRsuouSr7SxQDx64BLx50bVmM8YXDshJ9LoPJ4XFrq55Jlr3BMVNrBTRxKqTRU-Yg/exec';
+                form.action = 'https://script.google.com/macros/s/AKfycbxp8KbHeUWMCpbucBHhn3gQBdvevpZgf7KOT3tE5FikBDHenw2-OTFogq5hmTvr2UhKOA/exec';
                 form.target = 'hiddenIframe';
                 form.style.display = 'none';
                 
@@ -7107,8 +7101,6 @@
         // PWA instalada
         window.addEventListener('appinstalled', (evt) => {
             console.log('🎉 PWA instalada exitosamente');
-            // Ocultar indicador rojo cuando se instala automáticamente
-            hideNotificationIndicator();
         });
 
         // SISTEMA DE NOTIFICACIONES CON ANIMACIÓN
@@ -7237,8 +7229,6 @@
                     deferredPrompt.userChoice.then((choiceResult) => {
                         if (choiceResult.outcome === 'accepted') {
                             console.log('✅ Usuario aceptó instalar la PWA');
-                            // Ocultar indicador rojo cuando se instala
-                            hideNotificationIndicator();
                         } else {
                             console.log('❌ Usuario rechazó instalar la PWA');
                         }
@@ -7247,8 +7237,6 @@
                     });
                 } else {
                     console.log('⚠️ deferredPrompt no disponible - PWA ya instalada o no compatible');
-                    // Ocultar indicador rojo y notificación sin mensaje
-                    hideNotificationIndicator();
                     hideNotification();
                 }
             });
@@ -7267,8 +7255,6 @@
                     notificationElement.remove();
                     notificationElement = null;
                     notificationClosed = true;
-                    // Mostrar indicador rojo en el botón del header
-                    showNotificationIndicator();
                 }, 500);
             }
         }
@@ -7315,14 +7301,6 @@
             }
         }
 
-        // Función para ocultar indicador rojo
-        function hideNotificationIndicator() {
-            const indicator = document.getElementById('notification-indicator');
-            if (indicator) {
-                indicator.remove();
-                console.log('🔴 Indicador rojo removido del botón de notificaciones');
-            }
-        }
 
         // Función para crear botón de notificación (ELIMINADA - solo se abre desde header)
         function createNotificationButton() {
@@ -7336,21 +7314,6 @@
             showInstallNotification();
         }, 3000);
 
-        // Event listener para botón de notificaciones del header
-        document.addEventListener('DOMContentLoaded', function() {
-            // Buscar el botón de notificaciones por ID
-            const notificationHeaderBtn = document.getElementById('notification-header-btn');
-            if (notificationHeaderBtn) {
-                notificationHeaderBtn.addEventListener('click', function() {
-                    console.log('🔔 Botón de notificaciones del header clickeado');
-                    // Abrir notificación directamente desde el header
-                    if (notificationClosed) {
-                        notificationClosed = false;
-                        showInstallNotification();
-                    }
-                });
-            }
-        });
     </script>
 </body>
 </html>
