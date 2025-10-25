@@ -6916,28 +6916,46 @@
                 
                 console.log(`📧 Enviando suscripción para usuario: ${userEmail}`);
                 
-                const response = await fetch('https://script.google.com/macros/s/AKfycbzI0XRsuouSr7SxQDx64BLx50bVmM8YXDshJ9LoPJ4XFrq55Jlr3BMVNrBTRxKqTRU-Yg/exec', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'saveSubscription',
-                        userEmail: userEmail,
-                        subscription: subscription
-                    })
-                });
+                // Crear formulario oculto para enviar la suscripción
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'https://script.google.com/macros/s/AKfycbzI0XRsuouSr7SxQDx64BLx50bVmM8YXDshJ9LoPJ4XFrq55Jlr3BMVNrBTRxKqTRU-Yg/exec';
+                form.target = 'hiddenIframe';
+                form.style.display = 'none';
                 
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('✅ Subscription enviada al servidor exitosamente');
-                    console.log(`📋 ID de suscripción: ${result.subscriptionId}`);
-                    
-                    // Guardar ID de suscripción en localStorage
-                    localStorage.setItem('pushSubscriptionId', result.subscriptionId);
-                } else {
-                    console.error('❌ Error enviando subscription:', response.status);
-                }
+                // Agregar campos al formulario
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'saveSubscription';
+                form.appendChild(actionInput);
+                
+                const emailInput = document.createElement('input');
+                emailInput.type = 'hidden';
+                emailInput.name = 'userEmail';
+                emailInput.value = userEmail;
+                form.appendChild(emailInput);
+                
+                const subscriptionInput = document.createElement('input');
+                subscriptionInput.type = 'hidden';
+                subscriptionInput.name = 'subscription';
+                subscriptionInput.value = JSON.stringify(subscription);
+                form.appendChild(subscriptionInput);
+                
+                // Enviar formulario
+                document.body.appendChild(form);
+                form.submit();
+                
+                // Limpiar formulario después de enviar
+                setTimeout(() => {
+                    document.body.removeChild(form);
+                }, 1000);
+                
+                console.log('✅ Formulario de suscripción enviado');
+                console.log('📋 Datos enviados:', {
+                    userEmail: userEmail,
+                    subscription: subscription
+                });
             } catch (error) {
                 console.error('❌ Error enviando subscription:', error);
             }
