@@ -723,6 +723,15 @@
             position: relative;
             color: white;
             min-height: 160px !important;
+            /* Eliminar fondo azul de selección */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-focus-ring-color: transparent;
+            outline: none;
         }
 
         .item-card:hover {
@@ -730,9 +739,145 @@
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
 
+        /* Eliminar fondo azul de selección en todas las tarjetas */
+        .item-card:active,
+        .item-card:focus {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-focus-ring-color: transparent;
+            outline: none;
+            background: #1e1e1e !important;
+        }
+
         .item-card.dark {
             background: #1e1e1e;
             color: white;
+        }
+
+        /* Estilos adicionales para eliminar selección en elementos clickeables */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Eliminar fondo azul en botones y elementos interactivos */
+        button:active,
+        button:focus,
+        .btn:active,
+        .btn:focus {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-focus-ring-color: transparent;
+            outline: none;
+        }
+
+        /* Control de cursor para diferentes elementos */
+        
+        /* Elementos clickeables - cursor pointer */
+        .item-card,
+        .item-card *,
+        button,
+        .btn,
+        .profile-pic,
+        .search-btn,
+        .bookmark-btn,
+        .close-btn,
+        .nav-item,
+        .status-badge,
+        .item-icon,
+        .item-details,
+        .item-title,
+        .item-meta,
+        .item-location,
+        .progress-bar,
+        .progress-fill {
+            cursor: pointer !important;
+        }
+
+        /* Elementos de texto no editables - cursor default */
+        h1, h2, h3, h4, h5, h6,
+        p, span, div:not(.item-card):not(.btn):not(button),
+        .item-info,
+        .item-card-header,
+        .loading-text,
+        .hero-section,
+        .card h2,
+        .form-group label {
+            cursor: default !important;
+        }
+
+        /* Inputs y textareas - cursor text */
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        textarea,
+        select {
+            cursor: text !important;
+        }
+
+        /* Elementos específicos que no deben tener cursor pointer */
+        .item-card .item-title,
+        .item-card .item-meta,
+        .item-card .item-location,
+        .item-card .status-badge {
+            cursor: inherit !important;
+        }
+
+        /* BLOQUEAR CURSOR DE TEXTO SOLO EN TEXTOS */
+        
+        /* Solo inputs y textareas pueden tener cursor de texto */
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        input[type="search"],
+        textarea,
+        select,
+        [contenteditable="true"] {
+            cursor: text !important;
+        }
+
+        /* BLOQUEAR CURSOR DE TEXTO EN TODOS LOS TEXTOS */
+        h1, h2, h3, h4, h5, h6,
+        p, span, div, label,
+        .item-details,
+        .item-title,
+        .item-meta,
+        .item-location,
+        .loading-text,
+        .hero-section,
+        .card h2,
+        .form-group label,
+        .item-card .item-details h4,
+        .item-card .item-details p,
+        .item-card .item-title,
+        .item-card .item-meta span,
+        .item-card .item-location,
+        .status-badge,
+        .item-icon,
+        .progress-bar,
+        .progress-fill,
+        .profile-pic,
+        .search-btn,
+        .close-btn,
+        .bookmark-btn,
+        .nav-item,
+        .item-card-header,
+        .item-info,
+        .item-card * {
+            cursor: default !important;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Elementos clickeables mantienen pointer */
+        .item-card,
+        button,
+        .btn,
+        a,
+        [onclick],
+        [role="button"] {
+            cursor: pointer !important;
         }
 
         .item-card-header {
