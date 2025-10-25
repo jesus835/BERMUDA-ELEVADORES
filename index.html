@@ -2605,39 +2605,39 @@
                         // Actualizar estados con datos reales
                         statusesContainer.innerHTML = `
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.OUT_OF_SERVICE ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
-                                <span>Out of Service</span>
+                                <span>🚫 Out of Service</span>
                                 <span class="${deviceData.OUT_OF_SERVICE ? 'true' : 'false'}" style="color: ${deviceData.OUT_OF_SERVICE ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                    ${deviceData.OUT_OF_SERVICE ? '🔥 ALARM' : 'NORMAL'}
+                                    ${deviceData.OUT_OF_SERVICE ? '🚨 ALARM' : '✅ NORMAL'}
                                 </span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.FIRE_SERVICE ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
-                                <span>Fire Service</span>
+                                <span>🔥 Fire Service</span>
                                 <span class="${deviceData.FIRE_SERVICE ? 'true' : 'false'}" style="color: ${deviceData.FIRE_SERVICE ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                    ${deviceData.FIRE_SERVICE ? '🔥 ALARM' : 'NORMAL'}
+                                    ${deviceData.FIRE_SERVICE ? '🚨 ALARM' : '✅ NORMAL'}
                                 </span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.PHONE_COMM ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
-                                <span>Phone Comm</span>
+                                <span>📞 Phone Comm</span>
                                 <span class="${deviceData.PHONE_COMM ? 'true' : 'false'}" style="color: ${deviceData.PHONE_COMM ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                    ${deviceData.PHONE_COMM ? '🔥 ALARM' : 'NORMAL'}
+                                    ${deviceData.PHONE_COMM ? '🚨 ALARM' : '✅ NORMAL'}
                                 </span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.PIT_FLOODED ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
-                                <span>Pit Flooded</span>
+                                <span>💧 Pit Flooded</span>
                                 <span class="${deviceData.PIT_FLOODED ? 'true' : 'false'}" style="color: ${deviceData.PIT_FLOODED ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                    ${deviceData.PIT_FLOODED ? '🔥 ALARM' : 'NORMAL'}
+                                    ${deviceData.PIT_FLOODED ? '🚨 ALARM' : '✅ NORMAL'}
                                 </span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>Elevator at DZ</span>
+                                <span>🏢 Elevator at DZ</span>
                                 <span class="${deviceData.AT_FLOOR ? 'true' : 'false'}" style="color: ${deviceData.AT_FLOOR ? '#3498db' : '#3498db'}; font-weight: 600;">
-                                    ${deviceData.AT_FLOOR ? 'YES' : 'NO'}
+                                    ${deviceData.AT_FLOOR ? '✅ YES' : '❌ NO'}
                                 </span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>Elevator Moving</span>
+                                <span>🚀 Elevator Moving</span>
                                 <span class="${deviceData.MOVING ? 'true' : 'false'}" style="color: ${deviceData.MOVING ? '#3498db' : '#3498db'}; font-weight: 600;">
-                                    ${deviceData.MOVING ? 'YES' : 'NO'}
+                                    ${deviceData.MOVING ? '✅ YES' : '❌ NO'}
                                 </span>
                             </div>
                         `;
@@ -2647,28 +2647,28 @@
                         
                         statusesContainer.innerHTML = `
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>Out of Service</span>
-                                <span class="offline" style="color: #e67e22; font-weight: 600;">OFFLINE</span>
+                                <span>🚫 Out of Service</span>
+                                <span class="offline" style="color: #e67e22; font-weight: 600;">📡 OFFLINE</span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>Fire Service</span>
-                                <span class="offline" style="color: #e67e22; font-weight: 600;">OFFLINE</span>
+                                <span>🔥 Fire Service</span>
+                                <span class="offline" style="color: #e67e22; font-weight: 600;">📡 OFFLINE</span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>Phone Comm</span>
-                                <span class="offline" style="color: #e67e22; font-weight: 600;">OFFLINE</span>
+                                <span>📞 Phone Comm</span>
+                                <span class="offline" style="color: #e67e22; font-weight: 600;">📡 OFFLINE</span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>Pit Flooded</span>
-                                <span class="offline" style="color: #e67e22; font-weight: 600;">OFFLINE</span>
+                                <span>💧 Pit Flooded</span>
+                                <span class="offline" style="color: #e67e22; font-weight: 600;">📡 OFFLINE</span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>Elevator at DZ</span>
-                                <span class="offline" style="color: #e67e22; font-weight: 600;">OFFLINE</span>
+                                <span>🏢 Elevator at DZ</span>
+                                <span class="offline" style="color: #e67e22; font-weight: 600;">📡 OFFLINE</span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>Elevator Moving</span>
-                                <span class="offline" style="color: #e67e22; font-weight: 600;">OFFLINE</span>
+                                <span>🚀 Elevator Moving</span>
+                                <span class="offline" style="color: #e67e22; font-weight: 600;">📡 OFFLINE</span>
                             </div>
                         `;
                     }
@@ -2831,7 +2831,7 @@
                         } else {
                             console.log('Usuario Client - Filtrando dashboard por email del cliente');
                             filteredData = data.data.filter(device => {
-                                const deviceEmail = device.clientEmail ? device.clientEmail.toLowerCase() : '';
+                                const deviceEmail = device.clientEmail ? String(device.clientEmail).toLowerCase() : '';
                                 const userEmail = currentUser.email.toLowerCase();
                                 
                                 // Extraer la parte del correo antes del guión (si existe)
@@ -3036,7 +3036,7 @@
                         } else {
                             console.log('Usuario Client - Filtrando por email del cliente');
                             filteredData = data.data.filter(device => {
-                                const deviceEmail = device.clientEmail ? device.clientEmail.toLowerCase() : '';
+                                const deviceEmail = device.clientEmail ? String(device.clientEmail).toLowerCase() : '';
                                 const userEmail = currentUser.email.toLowerCase();
                                 
                                 // Extraer la parte del correo antes del guión (si existe)
@@ -3364,7 +3364,7 @@
                         } else {
                             console.log('Usuario Client - Filtrando Service por email del cliente');
                             filteredData = data.data.filter(device => {
-                                const deviceEmail = device.clientEmail ? device.clientEmail.toLowerCase() : '';
+                                const deviceEmail = device.clientEmail ? String(device.clientEmail).toLowerCase() : '';
                                 const userEmail = currentUser.email.toLowerCase();
                                 
                                 // Extraer la parte del correo antes del guión (si existe)
@@ -6162,8 +6162,10 @@
                 // Cargar datos de la aplicación con pantalla de carga
                 await loadAppData();
                 
-                // Verificar rol de admin después del login
-                checkAdminRole();
+                // Verificar rol de admin después del login con un pequeño delay
+                setTimeout(() => {
+                    checkAdminRole();
+                }, 1000);
                 
             } catch (error) {
                 console.error('Error en el login:', error);
@@ -6226,6 +6228,10 @@
             const loadingText = document.querySelector('.loading-text');
             
             try {
+                // Limpiar cache antes de cargar datos para evitar problemas con usuarios anteriores
+                clearApiCache();
+                console.log('Cache limpiado antes de cargar datos del nuevo usuario');
+                
                 // Obtener información del usuario actual
                 const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                 console.log('Usuario actual:', currentUser);
@@ -6291,6 +6297,8 @@
                 const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                 const viewHistoryContainer = document.getElementById('viewHistoryContainer');
                 
+                console.log('Verificando rol de admin:', currentUser.role);
+                
                 if (viewHistoryContainer) {
                     if (currentUser.role === 'Admin' || currentUser.role === 'admin') {
                         viewHistoryContainer.style.display = 'block';
@@ -6299,6 +6307,8 @@
                         viewHistoryContainer.style.display = 'none';
                         console.log('Usuario no admin - Ocultando botón View History');
                     }
+                } else {
+                    console.log('Contenedor viewHistoryContainer no encontrado');
                 }
             } catch (error) {
                 console.error('Error verificando rol de admin:', error);
@@ -6431,6 +6441,9 @@
             // Limpiar caché de datos de usuarios para forzar recarga en próximo login
             localStorage.removeItem('usersData');
             localStorage.removeItem('usersDataTimestamp');
+            
+            // Limpiar cache de la API para evitar problemas al cambiar de usuario
+            clearApiCache();
             
             // Limpiar historial de servicios (opcional - comentado para mantener historial)
             // localStorage.removeItem('serviceHistory');
