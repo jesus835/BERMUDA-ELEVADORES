@@ -7103,25 +7103,21 @@
             console.log('🎉 PWA instalada exitosamente');
         });
 
-        // SISTEMA DE NOTIFICACIONES CON ANIMACIÓN
-        let notificationClosed = false;
-        let notificationElement = null;
-        let notificationButton = null;
-
-        // Función para mostrar notificación con animación
-        function showInstallNotification() {
-            if (notificationClosed) return;
+        // Instalar PWA
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('📱 PWA puede ser instalada - MOSTRANDO NOTIFICACIÓN ELEGANTE');
+            e.preventDefault();
+            deferredPrompt = e;
             
-            console.log('🔔 Mostrando notificación de instalación...');
-            notificationElement = document.createElement('div');
-            notificationElement.innerHTML = `
-                <div id="install-notification" style="
+            // Mostrar notificación de instalación elegante
+            const installNotification = document.createElement('div');
+            installNotification.innerHTML = `
+                <div style="
                     position: fixed;
-                    top: 28%;
-                    left: 50%;
-                    transform: translateX(-50%) translateY(-50%) translateY(100px);
-                    width: 90%;
-                    max-width: 400px;
+                    bottom: 20px;
+                    left: 20px;
+                    right: 20px;
                     background: #f8f9fa;
                     border-radius: 16px;
                     padding: 16px;
@@ -7129,8 +7125,6 @@
                     z-index: 1000;
                     backdrop-filter: blur(10px);
                     border: 1px solid rgba(255,255,255,0.2);
-                    opacity: 0;
-                    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
                 ">
                     <div style="
                         display: flex;
@@ -7207,20 +7201,11 @@
                 </div>
             `;
             
-            document.body.appendChild(notificationElement);
-            
-            // Animar entrada
-            setTimeout(() => {
-                const notification = document.getElementById('install-notification');
-                if (notification) {
-                    notification.style.transform = 'translateX(-50%) translateY(-50%)';
-                    notification.style.opacity = '1';
-                }
-            }, 100);
+            document.body.appendChild(installNotification);
             
             // Event listeners
             document.getElementById('notification-dismiss').addEventListener('click', () => {
-                hideNotification();
+                installNotification.remove();
             });
             
             document.getElementById('notification-install').addEventListener('click', () => {
@@ -7233,86 +7218,14 @@
                             console.log('❌ Usuario rechazó instalar la PWA');
                         }
                         deferredPrompt = null;
-                        hideNotification();
+                        installNotification.remove();
                     });
                 } else {
-                    console.log('⚠️ deferredPrompt no disponible - PWA ya instalada o no compatible');
-                    hideNotification();
+                    console.log('⚠️ deferredPrompt no disponible');
+                    installNotification.remove();
                 }
             });
-        }
-
-        // Función para ocultar notificación con animación
-        function hideNotification() {
-            if (!notificationElement) return;
-            
-            const notification = document.getElementById('install-notification');
-            if (notification) {
-                notification.style.transform = 'translateX(-50%) translateY(-50%) translateY(100px)';
-                notification.style.opacity = '0';
-                
-                setTimeout(() => {
-                    notificationElement.remove();
-                    notificationElement = null;
-                    notificationClosed = true;
-                }, 500);
-            }
-        }
-
-        // Función para mostrar indicador rojo en el botón de notificaciones
-        function showNotificationIndicator() {
-            const notificationBtn = document.getElementById('notification-header-btn');
-            if (notificationBtn) {
-                // Crear indicador rojo
-                const indicator = document.createElement('div');
-                indicator.id = 'notification-indicator';
-                indicator.style.cssText = `
-                    position: absolute;
-                    top: -2px;
-                    right: -2px;
-                    width: 12px;
-                    height: 12px;
-                    background: #e74c3c;
-                    border-radius: 50%;
-                    border: 2px solid white;
-                    z-index: 1001;
-                    animation: pulse 2s infinite;
-                `;
-                
-                // Agregar animación CSS
-                if (!document.getElementById('notification-pulse-style')) {
-                    const style = document.createElement('style');
-                    style.id = 'notification-pulse-style';
-                    style.textContent = `
-                        @keyframes pulse {
-                            0% { transform: scale(1); opacity: 1; }
-                            50% { transform: scale(1.2); opacity: 0.7; }
-                            100% { transform: scale(1); opacity: 1; }
-                        }
-                    `;
-                    document.head.appendChild(style);
-                }
-                
-                // Hacer el botón relativo para el indicador
-                notificationBtn.style.position = 'relative';
-                notificationBtn.appendChild(indicator);
-                
-                console.log('🔴 Indicador rojo agregado al botón de notificaciones');
-            }
-        }
-
-
-        // Función para crear botón de notificación (ELIMINADA - solo se abre desde header)
-        function createNotificationButton() {
-            // Esta función ya no crea el botón rojo
-            // Solo se abre desde el botón del header
-            console.log('🔔 Botón rojo eliminado - solo se abre desde header');
-        }
-
-        // Mostrar notificación después de 3 segundos
-        setTimeout(() => {
-            showInstallNotification();
-        }, 3000);
+        });
 
     </script>
 </body>
