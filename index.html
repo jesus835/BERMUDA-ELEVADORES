@@ -6828,10 +6828,6 @@
                     .then((registration) => {
                         console.log('✅ Service Worker registrado:', registration.scope);
                         
-                        // Registrar Push API después de 2 segundos
-                        setTimeout(() => {
-                            registerPushNotifications(registration);
-                        }, 2000);
                         
                         // Verificar actualizaciones
                         registration.addEventListener('updatefound', () => {
@@ -6853,107 +6849,7 @@
             });
         }
 
-        // Función para registrar Push Notifications
-        async function registerPushNotifications(registration) {
-            try {
-                console.log('🔔 Iniciando registro de Push API...');
-                
-                // Solicitar permisos de notificación
-                const permission = await Notification.requestPermission();
-                if (permission !== 'granted') {
-                    console.log('❌ Permisos de notificación denegados');
-                    return;
-                }
-                
-                console.log('✅ Permisos de notificación concedidos');
-                
-                // Suscribirse a push
-                const subscription = await registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-                });
-                
-                console.log('✅ Push subscription creada:', subscription);
-                
-                // Enviar subscription a tu servidor
-                await sendSubscriptionToServer(subscription);
-                
-            } catch (error) {
-                console.error('❌ Error registrando Push API:', error);
-            }
-        }
 
-        // Función para convertir VAPID key
-        function urlBase64ToUint8Array(base64String) {
-            const padding = '='.repeat((4 - base64String.length % 4) % 4);
-            const base64 = (base64String + padding)
-                .replace(/-/g, '+')
-                .replace(/_/g, '/');
-
-            const rawData = window.atob(base64);
-            const outputArray = new Uint8Array(rawData.length);
-
-            for (let i = 0; i < rawData.length; ++i) {
-                outputArray[i] = rawData.charCodeAt(i);
-            }
-            return outputArray;
-        }
-
-        // Función para enviar subscription al servidor
-        async function sendSubscriptionToServer(subscription) {
-            try {
-                console.log('📤 Enviando subscription al servidor...');
-                
-                // Obtener email del usuario actual
-                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-                const userEmail = currentUser.email || 'unknown@example.com';
-                
-                console.log(`📧 Enviando suscripción para usuario: ${userEmail}`);
-                
-                // Crear formulario oculto para enviar la suscripción
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = 'https://script.google.com/macros/s/AKfycbxp8KbHeUWMCpbucBHhn3gQBdvevpZgf7KOT3tE5FikBDHenw2-OTFogq5hmTvr2UhKOA/exec';
-                form.target = 'hiddenIframe';
-                form.style.display = 'none';
-                
-                // Agregar campos al formulario
-                const actionInput = document.createElement('input');
-                actionInput.type = 'hidden';
-                actionInput.name = 'action';
-                actionInput.value = 'saveSubscription';
-                form.appendChild(actionInput);
-                
-                const emailInput = document.createElement('input');
-                emailInput.type = 'hidden';
-                emailInput.name = 'userEmail';
-                emailInput.value = userEmail;
-                form.appendChild(emailInput);
-                
-                const subscriptionInput = document.createElement('input');
-                subscriptionInput.type = 'hidden';
-                subscriptionInput.name = 'subscription';
-                subscriptionInput.value = JSON.stringify(subscription);
-                form.appendChild(subscriptionInput);
-                
-                // Enviar formulario
-                document.body.appendChild(form);
-                form.submit();
-                
-                // Limpiar formulario después de enviar
-                setTimeout(() => {
-                    document.body.removeChild(form);
-                }, 1000);
-                
-                console.log('✅ Formulario de suscripción enviado');
-                console.log('📋 Datos enviados:', {
-                    userEmail: userEmail,
-                    subscription: subscription
-                });
-            } catch (error) {
-                console.error('❌ Error enviando subscription:', error);
-            }
-        }
 
         // Instalar PWA
         let deferredPrompt;
