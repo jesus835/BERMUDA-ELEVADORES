@@ -1744,7 +1744,7 @@
                             <line x1="17" y1="16" x2="23" y2="16"></line>
                         </svg>
                     </button>
-                    <button class="icon-btn">
+                    <button class="icon-btn" id="notification-header-btn" title="Mostrar notificación de instalación">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
@@ -6822,14 +6822,22 @@
 
     </script>
 
-    <!-- PWA Service Worker -->
+    <!-- PWA Service Worker + Push API -->
     <script>
+        // VAPID Public Key
+        const VAPID_PUBLIC_KEY = 'BP9tERGLAHCk3jrMIXlRxDpvcsJdM7Lvr0RUgRRd5F-u3bamRLzpdryhr3wZPY6niab8lojRp3dvzrvTtCtHoz0';
+        
         // Registrar Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
                     .then((registration) => {
                         console.log('✅ Service Worker registrado:', registration.scope);
+                        
+                        // Registrar Push API después de 2 segundos
+                        setTimeout(() => {
+                            registerPushNotifications(registration);
+                        }, 2000);
                         
                         // Verificar actualizaciones
                         registration.addEventListener('updatefound', () => {
@@ -6851,32 +6859,190 @@
             });
         }
 
+        // Función para registrar Push Notifications
+        async function registerPushNotifications(registration) {
+            try {
+                console.log('🔔 Iniciando registro de Push API...');
+                
+                // Solicitar permisos de notificación
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    console.log('❌ Permisos de notificación denegados');
+                    return;
+                }
+                
+                console.log('✅ Permisos de notificación concedidos');
+                
+                // Suscribirse a push
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                });
+                
+                console.log('✅ Push subscription creada:', subscription);
+                
+                // Enviar subscription a tu servidor
+                await sendSubscriptionToServer(subscription);
+                
+            } catch (error) {
+                console.error('❌ Error registrando Push API:', error);
+            }
+        }
+
+        // Función para convertir VAPID key
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        // Función para enviar subscription al servidor
+        async function sendSubscriptionToServer(subscription) {
+            try {
+                console.log('📤 Enviando subscription al servidor...');
+                
+                // Obtener email del usuario actual
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const userEmail = currentUser.email || 'unknown@example.com';
+                
+                console.log(`📧 Enviando suscripción para usuario: ${userEmail}`);
+                
+                const response = await fetch('https://script.google.com/macros/s/AKfycbwt8uBwwZ2VBe-bTDST1sT_BxTjxqT163JVv42WxRdplMXjftHI9NOtYvr2T6tv7-z_Vg/exec', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'saveSubscription',
+                        userEmail: userEmail,
+                        subscription: subscription
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Subscription enviada al servidor exitosamente');
+                    console.log(`📋 ID de suscripción: ${result.subscriptionId}`);
+                    
+                    // Guardar ID de suscripción en localStorage
+                    localStorage.setItem('pushSubscriptionId', result.subscriptionId);
+                } else {
+                    console.error('❌ Error enviando subscription:', response.status);
+                }
+            } catch (error) {
+                console.error('❌ Error enviando subscription:', error);
+            }
+        }
+
         // Instalar PWA
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
-            console.log('📱 PWA puede ser instalada');
+            console.log('📱 PWA puede ser instalada - MOSTRANDO NOTIFICACIÓN ELEGANTE');
             e.preventDefault();
             deferredPrompt = e;
             
-            // Mostrar botón de instalación (opcional)
-            const installButton = document.createElement('button');
-            installButton.textContent = '📱 Instalar App';
-            installButton.style.cssText = `
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                background: #0b3d91;
-                color: white;
-                border: none;
-                padding: 12px 20px;
-                border-radius: 8px;
-                font-size: 14px;
-                cursor: pointer;
-                z-index: 1000;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            // Mostrar notificación de instalación elegante
+            const installNotification = document.createElement('div');
+            installNotification.innerHTML = `
+                <div style="
+                    position: fixed;
+                    bottom: 20px;
+                    left: 20px;
+                    right: 20px;
+                    background: #f8f9fa;
+                    border-radius: 16px;
+                    padding: 16px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+                    z-index: 1000;
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255,255,255,0.2);
+                ">
+                    <div style="
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        margin-bottom: 12px;
+                    ">
+                        <div style="
+                            width: 48px;
+                            height: 48px;
+                            background: #0b3d91;
+                            border-radius: 12px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 20px;
+                            color: white;
+                            font-weight: bold;
+                            flex-shrink: 0;
+                        ">
+                            📱
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="
+                                font-size: 16px;
+                                font-weight: 600;
+                                color: #2c3e50;
+                                line-height: 1.2;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                            ">
+                                Bermuda Elevators
+                            </div>
+                            <div style="
+                                font-size: 14px;
+                                color: #7f8c8d;
+                                line-height: 1.3;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                            ">
+                                Descarga La app Ahora
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                        <button id="install-dismiss" style="
+                            background: transparent;
+                            border: 1px solid #dee2e6;
+                            color: #6c757d;
+                            padding: 8px 12px;
+                            border-radius: 8px;
+                            font-size: 12px;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        ">
+                            Cerrar
+                        </button>
+                        <button id="install-accept" style="
+                            background: #0b3d91;
+                            border: none;
+                            color: white;
+                            padding: 8px 16px;
+                            border-radius: 8px;
+                            font-size: 12px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        ">
+                            Instalar
+                        </button>
+                    </div>
+                </div>
             `;
             
-            installButton.addEventListener('click', () => {
+            // Event listeners
+            installNotification.querySelector('#install-accept').addEventListener('click', () => {
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
@@ -6885,16 +7051,287 @@
                         console.log('❌ Usuario rechazó instalar la PWA');
                     }
                     deferredPrompt = null;
-                    installButton.remove();
+                    installNotification.remove();
                 });
             });
             
-            document.body.appendChild(installButton);
+            installNotification.querySelector('#install-dismiss').addEventListener('click', () => {
+                installNotification.remove();
+            });
+            
+            // Hover effects
+            const acceptBtn = installNotification.querySelector('#install-accept');
+            const dismissBtn = installNotification.querySelector('#install-dismiss');
+            
+            acceptBtn.addEventListener('mouseenter', () => {
+                acceptBtn.style.background = '#0a2d6b';
+                acceptBtn.style.transform = 'translateY(-1px)';
+            });
+            
+            acceptBtn.addEventListener('mouseleave', () => {
+                acceptBtn.style.background = '#0b3d91';
+                acceptBtn.style.transform = 'translateY(0)';
+            });
+            
+            dismissBtn.addEventListener('mouseenter', () => {
+                dismissBtn.style.background = '#f8f9fa';
+                dismissBtn.style.borderColor = '#adb5bd';
+            });
+            
+            dismissBtn.addEventListener('mouseleave', () => {
+                dismissBtn.style.background = 'transparent';
+                dismissBtn.style.borderColor = '#dee2e6';
+            });
+            
+            document.body.appendChild(installNotification);
         });
 
         // PWA instalada
         window.addEventListener('appinstalled', (evt) => {
             console.log('🎉 PWA instalada exitosamente');
+            // Ocultar indicador rojo cuando se instala automáticamente
+            hideNotificationIndicator();
+        });
+
+        // SISTEMA DE NOTIFICACIONES CON ANIMACIÓN
+        let notificationClosed = false;
+        let notificationElement = null;
+        let notificationButton = null;
+
+        // Función para mostrar notificación con animación
+        function showInstallNotification() {
+            if (notificationClosed) return;
+            
+            console.log('🔔 Mostrando notificación de instalación...');
+            notificationElement = document.createElement('div');
+            notificationElement.innerHTML = `
+                <div id="install-notification" style="
+                    position: fixed;
+                    top: 28%;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(-50%) translateY(100px);
+                    width: 90%;
+                    max-width: 400px;
+                    background: #f8f9fa;
+                    border-radius: 16px;
+                    padding: 16px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+                    z-index: 1000;
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255,255,255,0.2);
+                    opacity: 0;
+                    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                ">
+                    <div style="
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        margin-bottom: 12px;
+                    ">
+                        <div style="
+                            width: 48px;
+                            height: 48px;
+                            background: #0b3d91;
+                            border-radius: 12px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 20px;
+                            color: white;
+                            font-weight: bold;
+                            flex-shrink: 0;
+                        ">
+                            📱
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="
+                                font-size: 16px;
+                                font-weight: 600;
+                                color: #2c3e50;
+                                line-height: 1.2;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                            ">
+                                Bermuda Elevators
+                            </div>
+                            <div style="
+                                font-size: 14px;
+                                color: #7f8c8d;
+                                line-height: 1.3;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                            ">
+                                Descarga La app Ahora
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                        <button id="notification-dismiss" style="
+                            background: transparent;
+                            border: 1px solid #dee2e6;
+                            color: #6c757d;
+                            padding: 8px 12px;
+                            border-radius: 8px;
+                            font-size: 12px;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        ">
+                            Cerrar
+                        </button>
+                        <button id="notification-install" style="
+                            background: #0b3d91;
+                            border: none;
+                            color: white;
+                            padding: 8px 16px;
+                            border-radius: 8px;
+                            font-size: 12px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        ">
+                            Instalar
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(notificationElement);
+            
+            // Animar entrada
+            setTimeout(() => {
+                const notification = document.getElementById('install-notification');
+                if (notification) {
+                    notification.style.transform = 'translateX(-50%) translateY(-50%)';
+                    notification.style.opacity = '1';
+                }
+            }, 100);
+            
+            // Event listeners
+            document.getElementById('notification-dismiss').addEventListener('click', () => {
+                hideNotification();
+            });
+            
+            document.getElementById('notification-install').addEventListener('click', () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('✅ Usuario aceptó instalar la PWA');
+                            // Ocultar indicador rojo cuando se instala
+                            hideNotificationIndicator();
+                        } else {
+                            console.log('❌ Usuario rechazó instalar la PWA');
+                        }
+                        deferredPrompt = null;
+                        hideNotification();
+                    });
+                } else {
+                    console.log('⚠️ deferredPrompt no disponible - PWA ya instalada o no compatible');
+                    // Ocultar indicador rojo y notificación sin mensaje
+                    hideNotificationIndicator();
+                    hideNotification();
+                }
+            });
+        }
+
+        // Función para ocultar notificación con animación
+        function hideNotification() {
+            if (!notificationElement) return;
+            
+            const notification = document.getElementById('install-notification');
+            if (notification) {
+                notification.style.transform = 'translateX(-50%) translateY(-50%) translateY(100px)';
+                notification.style.opacity = '0';
+                
+                setTimeout(() => {
+                    notificationElement.remove();
+                    notificationElement = null;
+                    notificationClosed = true;
+                    // Mostrar indicador rojo en el botón del header
+                    showNotificationIndicator();
+                }, 500);
+            }
+        }
+
+        // Función para mostrar indicador rojo en el botón de notificaciones
+        function showNotificationIndicator() {
+            const notificationBtn = document.getElementById('notification-header-btn');
+            if (notificationBtn) {
+                // Crear indicador rojo
+                const indicator = document.createElement('div');
+                indicator.id = 'notification-indicator';
+                indicator.style.cssText = `
+                    position: absolute;
+                    top: -2px;
+                    right: -2px;
+                    width: 12px;
+                    height: 12px;
+                    background: #e74c3c;
+                    border-radius: 50%;
+                    border: 2px solid white;
+                    z-index: 1001;
+                    animation: pulse 2s infinite;
+                `;
+                
+                // Agregar animación CSS
+                if (!document.getElementById('notification-pulse-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'notification-pulse-style';
+                    style.textContent = `
+                        @keyframes pulse {
+                            0% { transform: scale(1); opacity: 1; }
+                            50% { transform: scale(1.2); opacity: 0.7; }
+                            100% { transform: scale(1); opacity: 1; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                // Hacer el botón relativo para el indicador
+                notificationBtn.style.position = 'relative';
+                notificationBtn.appendChild(indicator);
+                
+                console.log('🔴 Indicador rojo agregado al botón de notificaciones');
+            }
+        }
+
+        // Función para ocultar indicador rojo
+        function hideNotificationIndicator() {
+            const indicator = document.getElementById('notification-indicator');
+            if (indicator) {
+                indicator.remove();
+                console.log('🔴 Indicador rojo removido del botón de notificaciones');
+            }
+        }
+
+        // Función para crear botón de notificación (ELIMINADA - solo se abre desde header)
+        function createNotificationButton() {
+            // Esta función ya no crea el botón rojo
+            // Solo se abre desde el botón del header
+            console.log('🔔 Botón rojo eliminado - solo se abre desde header');
+        }
+
+        // Mostrar notificación después de 3 segundos
+        setTimeout(() => {
+            showInstallNotification();
+        }, 3000);
+
+        // Event listener para botón de notificaciones del header
+        document.addEventListener('DOMContentLoaded', function() {
+            // Buscar el botón de notificaciones por ID
+            const notificationHeaderBtn = document.getElementById('notification-header-btn');
+            if (notificationHeaderBtn) {
+                notificationHeaderBtn.addEventListener('click', function() {
+                    console.log('🔔 Botón de notificaciones del header clickeado');
+                    // Abrir notificación directamente desde el header
+                    if (notificationClosed) {
+                        notificationClosed = false;
+                        showInstallNotification();
+                    }
+                });
+            }
         });
     </script>
 </body>
