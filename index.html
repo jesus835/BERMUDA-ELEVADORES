@@ -2759,13 +2759,23 @@
                     if (deviceData) {
                         // El timestamp se actualiza dinámicamente cada segundo
                         
+                        // Verificar si el dispositivo está offline (han pasado más de 60 segundos desde su timestamp)
+                        const now = new Date();
+                        const deviceTime = new Date(deviceData.timestamp);
+                        const timeDiff = now - deviceTime;
+                        const secondsDiff = timeDiff / 1000;
+                        const isOffline = secondsDiff > 60;
+                        
                         // Verificar si hay alarmas críticas
                         const hasAlarm = deviceData.OUT_OF_SERVICE || deviceData.FIRE_SERVICE || 
                                        deviceData.PHONE_COMM || deviceData.PIT_FLOODED;
                         
-                        // Aplicar borde rojo al modal si hay alarmas
+                        // Aplicar borde al modal según el estado
                         const modalContent = modal.querySelector('.modal-content');
-                        if (hasAlarm) {
+                        if (isOffline) {
+                            modalContent.style.border = '3px solid #95a5a6';
+                            modalContent.style.boxShadow = '0 10px 30px rgba(149, 165, 166, 0.4)';
+                        } else if (hasAlarm) {
                             modalContent.style.border = '3px solid #e74c3c';
                             modalContent.style.boxShadow = '0 10px 30px rgba(231, 76, 60, 0.4)';
                         } else {
@@ -2774,44 +2784,75 @@
                         }
                         
                         // Actualizar estados con datos reales
-                        statusesContainer.innerHTML = `
-                            <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.OUT_OF_SERVICE ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
-                                <span>🚫 Out of Service</span>
-                                <span class="${deviceData.OUT_OF_SERVICE ? 'true' : 'false'}" style="color: ${deviceData.OUT_OF_SERVICE ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                    ${deviceData.OUT_OF_SERVICE ? '🚨 ALARM' : '✅ NORMAL'}
-                                </span>
-                            </div>
-                            <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.FIRE_SERVICE ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
-                                <span>🔥 Fire Service</span>
-                                <span class="${deviceData.FIRE_SERVICE ? 'true' : 'false'}" style="color: ${deviceData.FIRE_SERVICE ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                    ${deviceData.FIRE_SERVICE ? '🚨 ALARM' : '✅ NORMAL'}
-                                </span>
-                            </div>
-                            <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.PHONE_COMM ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
-                                <span>📞 Phone Comm</span>
-                                <span class="${deviceData.PHONE_COMM ? 'true' : 'false'}" style="color: ${deviceData.PHONE_COMM ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                    ${deviceData.PHONE_COMM ? '🚨 ALARM' : '✅ NORMAL'}
-                                </span>
-                            </div>
-                            <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.PIT_FLOODED ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
-                                <span>💧 Pit Flooded</span>
-                                <span class="${deviceData.PIT_FLOODED ? 'true' : 'false'}" style="color: ${deviceData.PIT_FLOODED ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                    ${deviceData.PIT_FLOODED ? '🚨 ALARM' : '✅ NORMAL'}
-                                </span>
-                            </div>
-                            <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>🏢 Elevator at DZ</span>
-                                <span class="${deviceData.AT_FLOOR ? 'true' : 'false'}" style="color: ${deviceData.AT_FLOOR ? '#3498db' : '#3498db'}; font-weight: 600;">
-                                    ${deviceData.AT_FLOOR ? 'YES' : 'NO'}
-                                </span>
-                            </div>
-                            <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>🚀 Elevator Moving</span>
-                                <span class="${deviceData.MOVING ? 'true' : 'false'}" style="color: ${deviceData.MOVING ? '#3498db' : '#3498db'}; font-weight: 600;">
-                                    ${deviceData.MOVING ? 'YES' : 'NO'}
-                                </span>
-                            </div>
-                        `;
+                        if (isOffline) {
+                            // Mostrar todos los estados como OFFLINE
+                            statusesContainer.innerHTML = `
+                                <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
+                                    <span>🚫 Out of Service</span>
+                                    <span class="offline" style="color: #95a5a6; font-weight: 600;">📡 OFFLINE</span>
+                                </div>
+                                <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
+                                    <span>🔥 Fire Service</span>
+                                    <span class="offline" style="color: #95a5a6; font-weight: 600;">📡 OFFLINE</span>
+                                </div>
+                                <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
+                                    <span>📞 Phone Comm</span>
+                                    <span class="offline" style="color: #95a5a6; font-weight: 600;">📡 OFFLINE</span>
+                                </div>
+                                <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
+                                    <span>💧 Pit Flooded</span>
+                                    <span class="offline" style="color: #95a5a6; font-weight: 600;">📡 OFFLINE</span>
+                                </div>
+                                <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
+                                    <span>🏢 Elevator at DZ</span>
+                                    <span class="offline" style="color: #95a5a6; font-weight: 600;">📡 OFFLINE</span>
+                                </div>
+                                <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
+                                    <span>🚀 Elevator Moving</span>
+                                    <span class="offline" style="color: #95a5a6; font-weight: 600;">📡 OFFLINE</span>
+                                </div>
+                            `;
+                        } else {
+                            // Mostrar estados normales con alarmas si las hay
+                            statusesContainer.innerHTML = `
+                                <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.OUT_OF_SERVICE ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
+                                    <span>🚫 Out of Service</span>
+                                    <span class="${deviceData.OUT_OF_SERVICE ? 'true' : 'false'}" style="color: ${deviceData.OUT_OF_SERVICE ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
+                                        ${deviceData.OUT_OF_SERVICE ? '🚨 ALARM' : '✅ NORMAL'}
+                                    </span>
+                                </div>
+                                <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.FIRE_SERVICE ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
+                                    <span>🔥 Fire Service</span>
+                                    <span class="${deviceData.FIRE_SERVICE ? 'true' : 'false'}" style="color: ${deviceData.FIRE_SERVICE ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
+                                        ${deviceData.FIRE_SERVICE ? '🚨 ALARM' : '✅ NORMAL'}
+                                    </span>
+                                </div>
+                                <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.PHONE_COMM ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
+                                    <span>📞 Phone Comm</span>
+                                    <span class="${deviceData.PHONE_COMM ? 'true' : 'false'}" style="color: ${deviceData.PHONE_COMM ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
+                                        ${deviceData.PHONE_COMM ? '🚨 ALARM' : '✅ NORMAL'}
+                                    </span>
+                                </div>
+                                <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.PIT_FLOODED ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
+                                    <span>💧 Pit Flooded</span>
+                                    <span class="${deviceData.PIT_FLOODED ? 'true' : 'false'}" style="color: ${deviceData.PIT_FLOODED ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
+                                        ${deviceData.PIT_FLOODED ? '🚨 ALARM' : '✅ NORMAL'}
+                                    </span>
+                                </div>
+                                <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
+                                    <span>🏢 Elevator at DZ</span>
+                                    <span class="${deviceData.AT_FLOOR ? 'true' : 'false'}" style="color: ${deviceData.AT_FLOOR ? '#3498db' : '#3498db'}; font-weight: 600;">
+                                        ${deviceData.AT_FLOOR ? 'YES' : 'NO'}
+                                    </span>
+                                </div>
+                                <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
+                                    <span>🚀 Elevator Moving</span>
+                                    <span class="${deviceData.MOVING ? 'true' : 'false'}" style="color: ${deviceData.MOVING ? '#3498db' : '#3498db'}; font-weight: 600;">
+                                        ${deviceData.MOVING ? 'YES' : 'NO'}
+                                    </span>
+                                </div>
+                            `;
+                        }
                     } else {
                         // Si no se encuentra el dispositivo, mostrar estado offline
                         // El timestamp se actualiza dinámicamente cada segundo
