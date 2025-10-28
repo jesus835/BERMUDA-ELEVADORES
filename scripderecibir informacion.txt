@@ -1,0 +1,52 @@
+const SPREADSHEET_ID = '1Tfn0MxYyrSMxPH3xRfskwbSls8uMLgr2KwP3G-dHI4c';
+
+function doGet() {
+  return ContentService.createTextOutput("✅ Web App activa");
+}
+
+function doPost(e) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheets()[0];
+
+    // Crear encabezado si la hoja está vacía
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(["device_id", "timestamp", "raw_json"]);
+    }
+
+    const jsonText = e.postData ? e.postData.contents : "{}";
+    const data = JSON.parse(jsonText);
+    const deviceId = data.device_id || "unknown";
+
+    let rowToUpdate = null;
+
+    // Solo buscar si hay filas de datos
+    if (sheet.getLastRow() > 1) {
+      const values = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
+      for (let i = 0; i < values.length; i++) {
+        if (values[i][0] === deviceId) {
+          rowToUpdate = i + 2; // fila real
+          break;
+        }
+      }
+    }
+
+    if (rowToUpdate) {
+      // Actualizar fila existente
+      sheet.getRange(rowToUpdate, 2).setValue(new Date().toLocaleString());
+      sheet.getRange(rowToUpdate, 3).setValue(jsonText);
+    } else {
+      // Insertar nueva fila
+      sheet.appendRow([deviceId, new Date().toLocaleString(), jsonText]);
+    }
+
+    return ContentService.createTextOutput(
+      JSON.stringify({status: "ok", message: "JSON guardado correctamente"})
+    ).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(
+      JSON.stringify({status: "error", message: err.message})
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+}

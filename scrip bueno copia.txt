@@ -1,0 +1,315 @@
+const SPREADSHEET_ID = '1Tfn0MxYyrSMxPH3xRfskwbSls8uMLgr2KwP3G-dHI4c';
+const DEVICES_SHEET_ID = '1WcMZL6VMOIzD_nJjhA5h2_UlMu7e1CPTwh4AU14if2w';
+const ALERT_EMAIL = 'jose@elevator.bm';
+const INPUTS = ['OUT_OF_SERVICE','FIRE_SERVICE','PHONE_COMM','PIT_FLOODED','AT_FLOOR','MOVING'];
+
+// SendLayer API Configuration
+const SENDLAYER_API_KEY = '9CE5B705-4659C803-3265FC33-9D14FC97';
+const SENDLAYER_FROM_EMAIL = 'besl@elevatoralarm.com';
+const SENDLAYER_FROM_NAME = 'Bermuda Elevators';
+
+function checkForChanges() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheets()[0];
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return; // nada que revisar
+
+  const data = sheet.getRange(2,1,lastRow-1,3).getValues(); // device_id, timestamp, raw_json
+
+  // Crear encabezados de inputs si no existen
+  const headers = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  INPUTS.forEach((input,i) => {
+    if (!headers.includes(input)) {
+      sheet.getRange(1, sheet.getLastColumn()+1, 1, 1).setValue(input);
+    }
+  });
+
+  const headerMap = {};
+  sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0].forEach((h,i)=>headerMap[h]=i+1);
+
+  let allChanges = []; // Acumular todos los cambios
+
+  data.forEach((row, idx) => {
+    const deviceId = row[0];
+    const jsonText = row[2];
+    const current = JSON.parse(jsonText);
+    let changes = [];
+
+    INPUTS.forEach(input => {
+      if (current[input] !== undefined) {
+        const col = headerMap[input];
+        const oldValue = sheet.getRange(idx+2, col).getValue();
+        if (oldValue !== current[input]) {
+          changes.push(`${input}: ${oldValue} → ${current[input]}`);
+          sheet.getRange(idx+2, col).setValue(current[input]);
+        }
+      }
+    });
+
+    if (changes.length > 0) {
+      const subject = `⚠ Cambios detectados en ${deviceId}`;
+      const body = `Se detectaron cambios en los inputs:\n\n` + changes.join("\n") + `\n\nTimestamp: ${current.timestamp || new Date().toLocaleString()}`;
+      
+      // Enviar por Gmail (tu lógica existente)
+      GmailApp.sendEmail(ALERT_EMAIL, subject, body);
+      
+      // NUEVO: Obtener email del dueño del dispositivo y enviar por SendLayer
+      const ownerEmail = getDeviceOwnerEmail(deviceId);
+      if (ownerEmail) {
+        sendEmailViaSendLayer(ownerEmail, subject, body);
+        console.log(`Email enviado al dueño ${ownerEmail} para dispositivo ${deviceId}`);
+      } else {
+        console.log(`No se encontró email del dueño para dispositivo ${deviceId}`);
+      }
+      
+      // Acumular cambios para notificación push
+      allChanges.push({
+        deviceId: deviceId,
+        changes: changes,
+        timestamp: current.timestamp || new Date().toLocaleString()
+      });
+    }
+  });
+
+  // Enviar notificación push si hay cambios
+  if (allChanges.length > 0) {
+    sendPushNotification(allChanges);
+  }
+}
+
+// FUNCIÓN ACTUALIZADA: Obtener email del dueño del dispositivo y separar el sufijo
+function getDeviceOwnerEmail(deviceId) {
+  try {
+    // Abrir el sheet de dispositivos (sheet diferente)
+    const devicesSheet = SpreadsheetApp.openById(DEVICES_SHEET_ID);
+    const sheet = devicesSheet.getSheets()[0]; // Primera hoja del sheet de dispositivos
+    
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) {
+      console.log('No hay datos en el sheet de dispositivos');
+      return null;
+    }
+    
+    // Obtener todos los datos de la hoja
+    const data = sheet.getRange(2, 1, lastRow-1, sheet.getLastColumn()).getValues();
+    
+    // Buscar el dispositivo por ID
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const currentDeviceId = row[0]; // Device ID (columna A)
+      const ownerEmailWithSuffix = row[3]; // Client Email (columna D)
+      
+      if (currentDeviceId === deviceId && ownerEmailWithSuffix) {
+        console.log(`Dispositivo ${deviceId} encontrado, email con sufijo: ${ownerEmailWithSuffix}`);
+        
+        // NUEVA FUNCIONALIDAD: Separar el email base del sufijo
+        const cleanEmail = extractBaseEmail(ownerEmailWithSuffix);
+        console.log(`Email limpio para notificación: ${cleanEmail}`);
+        
+        return cleanEmail;
+      }
+    }
+    
+    console.log(`Dispositivo ${deviceId} no encontrado en el sheet de dispositivos`);
+    return null;
+    
+  } catch (error) {
+    console.error('Error obteniendo email del dueño:', error);
+    return null;
+  }
+}
+
+// NUEVA FUNCIÓN: Extraer el email base del sufijo -1, -2, etc.
+function extractBaseEmail(emailWithSuffix) {
+  try {
+    // Si el email es null, undefined, o -1, devolver null
+    if (!emailWithSuffix || emailWithSuffix === -1 || emailWithSuffix === '-1') {
+      console.log('Email inválido o vacío');
+      return null;
+    }
+    
+    // Convertir a string si es necesario
+    const emailStr = String(emailWithSuffix);
+    
+    // Patrón para detectar email con sufijo: email@domain.com-XX
+    const emailWithSuffixPattern = /^(.+@.+\..+)-(\d+)$/;
+    const match = emailStr.match(emailWithSuffixPattern);
+    
+    if (match) {
+      const baseEmail = match[1]; // email@domain.com
+      const suffix = match[2]; // XX
+      console.log(`Email con sufijo detectado: ${emailStr} -> Base: ${baseEmail}, Sufijo: ${suffix}`);
+      return baseEmail;
+    } else {
+      // Si no tiene sufijo, devolver el email tal como está
+      console.log(`Email sin sufijo: ${emailStr}`);
+      return emailStr;
+    }
+    
+  } catch (error) {
+    console.error('Error extrayendo email base:', error);
+    return emailWithSuffix; // Devolver el email original como fallback
+  }
+}
+
+// FUNCIÓN: Enviar email via SendLayer API (FUNCIONANDO)
+function sendEmailViaSendLayer(toEmail, subject, body) {
+  try {
+    // Validar que el email no sea null o vacío
+    if (!toEmail || toEmail === -1 || toEmail === '-1') {
+      console.log('Email inválido para SendLayer, saltando envío');
+      return;
+    }
+    
+    const payload = {
+      From: {
+        name: SENDLAYER_FROM_NAME,
+        email: SENDLAYER_FROM_EMAIL
+      },
+      To: [
+        {
+          name: "Device Owner",
+          email: toEmail
+        }
+      ],
+      Subject: subject,
+      ContentType: "text/plain",
+      PlainContent: body,
+      HTMLContent: body.replace(/\n/g, '<br>'),
+      Tags: ["elevator-alert", "bermuda-elevators"]
+    };
+
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SENDLAYER_API_KEY}`
+      },
+      payload: JSON.stringify(payload)
+    };
+
+    // URL CORRECTA que ya probamos
+    const response = UrlFetchApp.fetch('https://console.sendlayer.com/api/v1/email', options);
+    const responseCode = response.getResponseCode();
+    const responseText = response.getContentText();
+    
+    console.log('SendLayer API Response Code:', responseCode);
+    console.log('SendLayer API Response:', responseText);
+    
+    if (responseCode === 200 || responseCode === 201) {
+      console.log(`Email enviado exitosamente via SendLayer a ${toEmail}`);
+    } else {
+      console.error('Error enviando email via SendLayer:', responseText);
+    }
+    
+  } catch (error) {
+    console.error('Error en SendLayer API:', error);
+  }
+}
+
+// Función para enviar notificación push (sin cambios)
+function sendPushNotification(changes) {
+  try {
+    const payload = {
+      title: "Bermuda Elevators - Alerta",
+      body: `Se detectaron cambios en ${changes.length} dispositivo(s)`,
+      data: {
+        alert_count: changes.length.toString(),
+        timestamp: new Date().toISOString(),
+        changes: JSON.stringify(changes)
+      }
+    };
+
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      payload: JSON.stringify(payload)
+    };
+
+    const response = UrlFetchApp.fetch('https://script.google.com/macros/s/AKfycbxRN8t9aNBCGl3MRvLV7bY0a_CY0MPL95E9-iPd9KjKOlqZqHjx5BH75ZsR1R7fQqlF/exec', options);
+    console.log('Push notification sent:', response.getResponseCode());
+  } catch (error) {
+    console.error('Error sending push notification:', error);
+  }
+}
+
+// Función para consultar alertas (sin cambios)
+function doGet(e) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheets()[0];
+  const lastRow = sheet.getLastRow();
+  
+  if (lastRow < 2) {
+    return ContentService.createTextOutput(JSON.stringify({
+      alerts: [],
+      timestamp: new Date().toISOString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const data = sheet.getRange(2,1,lastRow-1,3).getValues();
+  const headers = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  const headerMap = {};
+  headers.forEach((h,i) => headerMap[h] = i+1);
+
+  let alerts = [];
+  
+  data.forEach((row, idx) => {
+    const deviceId = row[0];
+    const jsonText = row[2];
+    const current = JSON.parse(jsonText);
+    
+    const hasAlert = INPUTS.some(input => {
+      if (current[input] !== undefined) {
+        const col = headerMap[input];
+        const value = sheet.getRange(idx+2, col).getValue();
+        return value === 'ALERTA' || value === 'OUT_OF_SERVICE';
+      }
+      return false;
+    });
+
+    if (hasAlert) {
+      alerts.push({
+        deviceId: deviceId,
+        timestamp: current.timestamp || new Date().toLocaleString(),
+        status: 'ALERTA'
+      });
+    }
+  });
+
+  return ContentService.createTextOutput(JSON.stringify({
+    alerts: alerts,
+    timestamp: new Date().toISOString()
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+// Función para recibir notificaciones push (sin cambios)
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    console.log('Received push notification:', data);
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const logSheet = ss.getSheetByName('NotificationLog') || ss.insertSheet('NotificationLog');
+    
+    logSheet.appendRow([
+      new Date(),
+      data.title,
+      data.body,
+      data.data.alert_count,
+      data.data.timestamp
+    ]);
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'success',
+      message: 'Notification received'
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    console.error('Error processing push notification:', error);
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}

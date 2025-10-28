@@ -1014,8 +1014,8 @@
         }
 
         .status-badge.offline {
-            background: #ffeaa7 !important;
-            color: #d63031 !important;
+            background: white !important;
+            color: black !important;
         }
 
         .status-badge.alarm {
@@ -1041,8 +1041,8 @@
         }
 
         .item-card.dark .status-badge.offline {
-            background: #8b4513 !important;
-            color: #ffa500 !important;
+            background: white !important;
+            color: black !important;
         }
 
         .item-card.dark .status-badge.alarm {
@@ -1598,35 +1598,10 @@
                     </div>
                     
                     <button type="submit" class="login-btn">Sign in</button>
-                    
-                    <div class="login-separator">
-                        <span>- Or sign in with -</span>
-                    </div>
-                    
-                    <div class="social-login">
-                        <button type="button" class="social-btn google-btn">
-                            <svg width="20" height="20" viewBox="0 0 24 24">
-                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                            </svg>
-                        </button>
-                        <button type="button" class="social-btn facebook-btn">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                            </svg>
-                        </button>
-                        <button type="button" class="social-btn twitter-btn">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#1DA1F2">
-                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                            </svg>
-                        </button>
-                    </div>
                 </form>
                 
                 <div class="signup-link">
-                    <span>Don't have an account? <a href="#" id="signupLink">Sign up</a></span>
+                    <span>Don't have an account? Contact your provider to register</span>
                 </div>
             </div>
         </div>
@@ -1880,11 +1855,8 @@
                       <div class="form-group">
                         <label>Service Type *</label>
                         <select id="serviceType" style="width:100%;padding:8px;font-size:0.9rem;">
-                          <option value="maintenance">Routine Maintenance</option>
-                          <option value="repair">Repair</option>
-                          <option value="troubleshooting">Troubleshooting</option>
-                          <option value="inspection">Inspection</option>
                           <option value="emergency">Emergency Call</option>
+                          <option value="inspection">Inspection</option>
                         </select>
                       </div>
                       <div class="form-group">
@@ -1953,9 +1925,12 @@
                   
                   <div class="form-group">
                     <label>Date Range</label>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div id="dateRangeContainer" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                       <input type="date" id="reportStartDate" style="width:100%;padding:8px;font-size:0.85rem;">
                       <input type="date" id="reportEndDate" style="width:100%;padding:8px;font-size:0.85rem;">
+                    </div>
+                    <div id="monthSelectorContainer" style="display:none;">
+                      <input type="month" id="reportMonth" style="width:100%;padding:8px;font-size:0.85rem;">
                     </div>
                   </div>
                   
@@ -2218,12 +2193,8 @@
                             <span>Operational</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                            <input type="radio" name="status" value="maintenance" style="margin: 0;">
-                            <span>Maintenance</span>
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                             <input type="radio" name="status" value="out-of-service" style="margin: 0;">
-                            <span>Out of Service</span>
+                            <span>In Alarm</span>
                         </label>
                     </div>
                 </div>
@@ -2729,12 +2700,14 @@
                             status = 'ALARM';
                             statusClass = 'alarm';
                             progressColor = '#e74c3c';
+                        } else {
+                            // Mantener estado operacional
                         }
                     } else {
                         // Si no se encuentra en la API, mostrar offline
                         status = 'offline';
                         statusClass = 'offline';
-                        progressColor = '#e67e22';
+                        progressColor = '#2c3e50';
                     }
                     
                     // Actualizar el HTML con el estado correcto
@@ -2796,8 +2769,8 @@
                             modalContent.style.border = '3px solid #e74c3c';
                             modalContent.style.boxShadow = '0 10px 30px rgba(231, 76, 60, 0.4)';
                         } else {
-                            modalContent.style.border = 'none';
-                            modalContent.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
+                            modalContent.style.border = '3px solid #27ae60';
+                            modalContent.style.boxShadow = '0 10px 30px rgba(39, 174, 96, 0.4)';
                         }
                         
                         // Actualizar estados con datos reales
@@ -2829,19 +2802,24 @@
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
                                 <span>🏢 Elevator at DZ</span>
                                 <span class="${deviceData.AT_FLOOR ? 'true' : 'false'}" style="color: ${deviceData.AT_FLOOR ? '#3498db' : '#3498db'}; font-weight: 600;">
-                                    ${deviceData.AT_FLOOR ? '✅ YES' : '❌ NO'}
+                                    ${deviceData.AT_FLOOR ? 'YES' : 'NO'}
                                 </span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
                                 <span>🚀 Elevator Moving</span>
                                 <span class="${deviceData.MOVING ? 'true' : 'false'}" style="color: ${deviceData.MOVING ? '#3498db' : '#3498db'}; font-weight: 600;">
-                                    ${deviceData.MOVING ? '✅ YES' : '❌ NO'}
+                                    ${deviceData.MOVING ? 'YES' : 'NO'}
                                 </span>
                             </div>
                         `;
                     } else {
                         // Si no se encuentra el dispositivo, mostrar estado offline
                         // El timestamp se actualiza dinámicamente cada segundo
+                        
+                        // Aplicar contorno gris al modal para dispositivos offline
+                        const modalContent = modal.querySelector('.modal-content');
+                        modalContent.style.border = '3px solid #2c3e50';
+                        modalContent.style.boxShadow = '0 10px 30px rgba(44, 62, 80, 0.4)';
                         
                         statusesContainer.innerHTML = `
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
@@ -2997,22 +2975,43 @@
             document.getElementById('elevator-modal').style.display = 'none';
         }
 
-        // Función para filtrar elevadores
-        function filterElevators(searchTerm) {
-            const filteredElevators = elevatorData.filter(elevator => 
-                elevator.name.toLowerCase().includes(searchTerm) ||
-                elevator.location.toLowerCase().includes(searchTerm) ||
-                elevator.status.toLowerCase().includes(searchTerm)
-            );
-            
-            // Si hay búsqueda, cambiar a Units y mostrar resultados
-            if (searchTerm.length > 0) {
-                showScreen('units-screen');
-                loadUnitsData(filteredElevators);
-            } else {
-                // Si no hay búsqueda, volver al dashboard
-                showScreen('dashboard-screen');
-                loadDashboardData();
+        // Función para filtrar elevadores (versión simplificada eliminada - usando la versión async)
+
+        // Función auxiliar para ordenar dispositivos por alarmas (alarmas primero)
+        async function sortDevicesByAlarms(devices) {
+            try {
+                // Obtener datos de la API para verificar alarmas
+                const apiData = await getApiDataWithCache();
+                
+                if (apiData && apiData.success && apiData.data && Array.isArray(apiData.data)) {
+                    const devicesWithAlarms = [];
+                    const devicesWithoutAlarms = [];
+                    
+                    devices.forEach(device => {
+                        const deviceData = apiData.data.find(d => d.device_id === device.deviceId);
+                        
+                        if (deviceData) {
+                            const hasAlarm = deviceData.OUT_OF_SERVICE || deviceData.FIRE_SERVICE || 
+                                           deviceData.PHONE_COMM || deviceData.PIT_FLOODED;
+                            
+                            if (hasAlarm) {
+                                devicesWithAlarms.push(device);
+                            } else {
+                                devicesWithoutAlarms.push(device);
+                            }
+                        } else {
+                            devicesWithoutAlarms.push(device);
+                        }
+                    });
+                    
+                    // Retornar ordenados: alarmas primero, luego el resto
+                    return [...devicesWithAlarms, ...devicesWithoutAlarms];
+                } else {
+                    return devices;
+                }
+            } catch (error) {
+                console.error('Error verificando alarmas para ordenación:', error);
+                return devices;
             }
         }
 
@@ -3094,8 +3093,8 @@
                     
                     console.log(`Procesando ${devicesWithStatus.length} dispositivos para Dashboard dinámico`);
                     
-                    // Lógica dinámica para seleccionar tarjeta del Dashboard
-                    let selectedDevice = null;
+                    // Lógica dinámica para seleccionar tarjetas del Dashboard
+                    let devicesToShow = [];
                     
                     try {
                         // Obtener datos de la API para verificar alarmas
@@ -3126,40 +3125,45 @@
                                 }
                             });
                             
-                            // Seleccionar dispositivo según prioridad
+                            // Seleccionar dispositivos según prioridad
                             if (devicesWithAlarms.length > 0) {
-                                // Prioridad 1: Dispositivo con alarma (tomar el primero)
-                                selectedDevice = devicesWithAlarms[0];
-                                console.log(`✅ Dashboard: Mostrando dispositivo con ALARMA - ${selectedDevice.deviceId}`);
+                                // Prioridad 1: TODOS los dispositivos con alarmas activas
+                                devicesToShow = devicesWithAlarms;
+                                console.log(`✅ Dashboard: Mostrando ${devicesWithAlarms.length} dispositivos con ALARMAS ACTIVAS`);
                             } else if (devicesWithoutAlarms.length > 0) {
-                                // Prioridad 2: Dispositivo al azar sin alarma
+                                // Prioridad 2: Un dispositivo al azar sin alarma
                                 const randomIndex = Math.floor(Math.random() * devicesWithoutAlarms.length);
-                                selectedDevice = devicesWithoutAlarms[randomIndex];
-                                console.log(`✅ Dashboard: Mostrando dispositivo al AZAR - ${selectedDevice.deviceId}`);
+                                devicesToShow = [devicesWithoutAlarms[randomIndex]];
+                                console.log(`✅ Dashboard: Mostrando dispositivo al AZAR - ${devicesWithoutAlarms[randomIndex].deviceId}`);
                             }
                         }
                     } catch (error) {
                         console.error('Error verificando alarmas para Dashboard:', error);
                         // Fallback: tomar el primer dispositivo
                         if (devicesWithStatus.length > 0) {
-                            selectedDevice = devicesWithStatus[0];
-                            console.log(`⚠️ Dashboard: Fallback al primer dispositivo - ${selectedDevice.deviceId}`);
+                            devicesToShow = [devicesWithStatus[0]];
+                            console.log(`⚠️ Dashboard: Fallback al primer dispositivo - ${devicesWithStatus[0].deviceId}`);
                         }
                     }
                     
-                    // Mostrar el dispositivo seleccionado
-                    if (selectedDevice) {
-                        console.log(`Dashboard - Creando tarjeta dinámica para: ${selectedDevice.deviceId}`);
+                    // Mostrar los dispositivos seleccionados
+                    if (devicesToShow.length > 0) {
+                        console.log(`Dashboard - Creando ${devicesToShow.length} tarjetas dinámicas`);
                         
-                        const card = await createDeviceElevatorCard(selectedDevice, 0);
-                        if (card) {
-                            container.appendChild(card);
-                            console.log(`Dashboard - Tarjeta dinámica agregada al contenedor`);
+                        for (let i = 0; i < devicesToShow.length; i++) {
+                            const device = devicesToShow[i];
+                            console.log(`Dashboard - Creando tarjeta dinámica para: ${device.deviceId}`);
                             
-                            // Pequeño delay para asegurar que la tarjeta se renderice completamente
-                            await new Promise(resolve => setTimeout(resolve, 100));
-                        } else {
-                            console.log(`Dashboard - Error creando tarjeta dinámica`);
+                            const card = await createDeviceElevatorCard(device, i);
+                            if (card) {
+                                container.appendChild(card);
+                                console.log(`Dashboard - Tarjeta dinámica agregada al contenedor para ${device.deviceId}`);
+                                
+                                // Pequeño delay para asegurar que la tarjeta se renderice completamente
+                                await new Promise(resolve => setTimeout(resolve, 100));
+                            } else {
+                                console.log(`Dashboard - Error creando tarjeta dinámica para ${device.deviceId}`);
+                            }
                         }
                     } else {
                         console.log(`Dashboard - No hay dispositivos disponibles para mostrar`);
@@ -3323,9 +3327,13 @@
                         firebaseConnected: false
                     }));
 
-                    // Mostrar todos los dispositivos válidos
-                    for (let index = 0; index < devicesWithStatus.length; index++) {
-                        const device = devicesWithStatus[index];
+                    // Ordenar dispositivos: alarmas activas primero, luego el resto
+                    const sortedDevices = await sortDevicesByAlarms(devicesWithStatus);
+                    console.log(`✅ Units: Dispositivos ordenados por alarmas`);
+
+                    // Mostrar todos los dispositivos válidos ordenados
+                    for (let index = 0; index < sortedDevices.length; index++) {
+                        const device = sortedDevices[index];
                         console.log(`Creando tarjeta para dispositivo ${index + 1}:`, device);
                         const card = await createDeviceElevatorCard(device, index);
                         if (card) {
@@ -3422,80 +3430,80 @@
             }
         }
 
-        // Función para cargar dispositivos en el select de reportes
+        // Function to load devices in reports select
         async function loadReportDevices() {
-            console.log('=== CARGANDO DISPOSITIVOS PARA REPORTES ===');
+            console.log('=== LOADING DEVICES FOR REPORTS ===');
             const select = document.getElementById('reportDeviceSelect');
             if (!select) {
-                console.error('No se encontró el select de dispositivos de reportes');
+                console.error('Reports device select not found');
                 return;
             }
 
-            // Mostrar estado de carga
+            // Show loading state
             select.innerHTML = '<option value="all">Loading devices...</option>';
             select.disabled = true;
 
             try {
-                const response = await fetch('https://script.google.com/macros/s/AKfycbwt8uBwwZ2VBe-bTDST1sT_BxTjxqT163JVv42WxRdplMXjftHI9NOtYvr2T6tv7-z_Vg/exec');
-                console.log('Respuesta de la API recibida:', response);
+                // Use reports API to get unique devices
+                const apiData = await fetchReportsData();
+                console.log('Reports API data received:', apiData);
                 
-                const data = await response.json();
-                console.log('Datos JSON parseados:', data);
+                // Extract unique devices from reports data
+                const uniqueDevices = [...new Set(apiData.map(item => item.device_id))].filter(id => id);
                 
-                if (data.success && data.data && Array.isArray(data.data)) {
-                    console.log('Datos válidos encontrados, cantidad:', data.data.length);
-                    
-                    // Limpiar opciones existentes
-                    select.innerHTML = '';
-                    
-                    // Agregar opción "All Devices"
-                    const allOption = document.createElement('option');
-                    allOption.value = 'all';
-                    allOption.textContent = 'All Devices';
-                    allOption.selected = true;
-                    select.appendChild(allOption);
-                    
-                    // Filtrar dispositivos válidos
-                    const validDevices = data.data.filter(device => {
-                        const isValid = device.deviceId && 
-                                      device.deviceId !== "Sin ID" && 
-                                      String(device.deviceId).trim() !== "";
-                        return isValid;
+                console.log(`Unique devices found: ${uniqueDevices.length}`, uniqueDevices);
+                
+                // Clear existing options
+                select.innerHTML = '';
+                
+                // Add "All devices" option
+                const allOption = document.createElement('option');
+                allOption.value = 'all';
+                allOption.textContent = 'All Devices';
+                allOption.selected = true;
+                select.appendChild(allOption);
+                
+                if (uniqueDevices.length === 0) {
+                    // No valid devices
+                    const noDevicesOption = document.createElement('option');
+                    noDevicesOption.value = '';
+                    noDevicesOption.textContent = 'No devices available';
+                    noDevicesOption.disabled = true;
+                    select.appendChild(noDevicesOption);
+                    console.log('No devices available in reports data');
+                } else {
+                    // Add unique devices found
+                    uniqueDevices.forEach(deviceId => {
+                        const option = document.createElement('option');
+                        option.value = deviceId;
+                        option.textContent = `Device ${deviceId}`;
+                        select.appendChild(option);
                     });
                     
-                    console.log(`Cargando ${validDevices.length} dispositivos válidos en el select de reportes`);
-                    
-                    if (validDevices.length === 0) {
-                        // No hay dispositivos válidos
-                        const noDevicesOption = document.createElement('option');
-                        noDevicesOption.value = '';
-                        noDevicesOption.textContent = 'No devices available';
-                        noDevicesOption.disabled = true;
-                        select.appendChild(noDevicesOption);
-                        console.log('No hay dispositivos válidos disponibles');
-                    } else {
-                        // Agregar dispositivos válidos
-                        validDevices.forEach(device => {
-                            const option = document.createElement('option');
-                            option.value = device.deviceId;
-                            option.textContent = `${device.buildingName} - ${device.unitElevator} (${device.deviceId})`;
-                            select.appendChild(option);
-                            console.log(`Dispositivo agregado al select de reportes: ${device.deviceId}`);
-                        });
-                    }
-                    
-                    // Habilitar el select
-                    select.disabled = false;
-                    console.log('=== DISPOSITIVOS CARGADOS EN SELECT DE REPORTES ===');
-                } else {
-                    console.error('Error en la respuesta de la API:', data);
-                    select.innerHTML = '<option value="all">Error loading devices</option>';
-                    select.disabled = false;
+                    console.log(`Loaded ${uniqueDevices.length} devices in reports select`);
                 }
-            } catch (error) {
-                console.error('Error al cargar dispositivos para reportes:', error);
-                select.innerHTML = '<option value="all">Error connecting to server</option>';
+                
+                // Enable select
                 select.disabled = false;
+                console.log('Reports device select loaded successfully');
+                
+            } catch (error) {
+                console.error('Error loading devices for reports:', error);
+                
+                // Show error message
+                select.innerHTML = '<option value="all">Error loading devices</option>';
+                select.disabled = false;
+                
+                // Show error message to user
+                const reportMsg = document.getElementById('reportMsg');
+                if (reportMsg) {
+                    reportMsg.textContent = 'Error loading devices. Using default data.';
+                    reportMsg.className = 'success-msg error';
+                    setTimeout(() => {
+                        reportMsg.textContent = '';
+                        reportMsg.className = '';
+                    }, 5000);
+                }
             }
         }
 
@@ -3686,8 +3694,8 @@
         
         // Variables para actualización automática
         let autoUpdateInterval = null;
-        const AUTO_UPDATE_DELAY = 30000; // 30 segundos antes de comenzar
-        const AUTO_UPDATE_INTERVAL = 20000; // 20 segundos entre actualizaciones
+        const AUTO_UPDATE_DELAY = 15000; // 15 segundos antes de comenzar
+        const AUTO_UPDATE_INTERVAL = 10000; // 10 segundos entre actualizaciones
         
         // Configuración de email de destino para reportes de servicio
         const SERVICE_REPORT_EMAIL = 'bermudaelevadores@gmail.com'; // Cambia aquí el email de destino
@@ -3859,27 +3867,50 @@
         
         // Función para actualizar el estado de una tarjeta específica
         function updateCardStatus(card, deviceData) {
+            const deviceId = deviceData.device_id;
+            const deviceTimestamp = deviceData.timestamp;
+            
+            // Verificar si el dispositivo está offline (han pasado más de 60 segundos desde su timestamp)
+            const now = new Date();
+            const deviceTime = new Date(deviceTimestamp);
+            const timeDiff = now - deviceTime;
+            const secondsDiff = timeDiff / 1000;
+            
+            let isOffline = false;
+            // Solo marcar como offline si han pasado más de 60 segundos Y el timestamp es muy antiguo
+            if (secondsDiff > 60) {
+                isOffline = true;
+                console.log(`📴 DISPOSITIVO OFFLINE detectado: ${deviceId} - Han pasado ${secondsDiff.toFixed(1)} segundos desde su último timestamp`);
+            } else {
+                console.log(`✅ Dispositivo ${deviceId} ONLINE - Solo han pasado ${secondsDiff.toFixed(1)} segundos`);
+            }
+            
+            console.log(`Dispositivo ${deviceId}:`, {
+                deviceTimestamp: deviceTimestamp,
+                currentTime: now.toISOString(),
+                secondsSinceLastUpdate: secondsDiff.toFixed(1),
+                isOffline: isOffline
+            });
+            
             // Verificar si hay alarmas activas
             const hasAlarm = deviceData.OUT_OF_SERVICE || deviceData.FIRE_SERVICE || 
                            deviceData.PHONE_COMM || deviceData.PIT_FLOODED;
-            
-            console.log(`Actualizando tarjeta ${deviceData.device_id}:`, {
-                OUT_OF_SERVICE: deviceData.OUT_OF_SERVICE,
-                FIRE_SERVICE: deviceData.FIRE_SERVICE,
-                PHONE_COMM: deviceData.PHONE_COMM,
-                PIT_FLOODED: deviceData.PIT_FLOODED,
-                hasAlarm: hasAlarm
-            });
             
             let status = 'operational';
             let statusClass = 'operational';
             let progressColor = '#27ae60';
             
-            if (hasAlarm) {
+            // Prioridad: OFFLINE > ALARM > OPERATIONAL
+            if (isOffline) {
+                status = 'OFFLINE';
+                statusClass = 'offline';
+                progressColor = '#95a5a6';
+                console.log(`📴 DISPOSITIVO OFFLINE: ${deviceId} - Cambiando a estado OFFLINE`);
+            } else if (hasAlarm) {
                 status = 'ALARM';
                 statusClass = 'alarm';
                 progressColor = '#e74c3c';
-                console.log(`🔥 ALARMA DETECTADA para ${deviceData.device_id} - Cambiando a estado ALARM`);
+                console.log(`🔥 ALARMA DETECTADA para ${deviceId} - Cambiando a estado ALARM`);
             }
             
             // Buscar elementos con selectores más específicos
@@ -3915,6 +3946,7 @@
                 const statusSpan = Array.from(allSpans).find(span => 
                     span.textContent === 'operational' || 
                     span.textContent === 'ALARM' ||
+                    span.textContent === 'OFFLINE' ||
                     span.className.includes('status-badge')
                 );
                 
@@ -3942,7 +3974,8 @@
                 const progressDiv = Array.from(allDivs).find(div => 
                     div.className.includes('progress-fill') ||
                     div.style.backgroundColor === 'rgb(39, 174, 96)' ||
-                    div.style.backgroundColor === 'rgb(231, 76, 60)'
+                    div.style.backgroundColor === 'rgb(231, 76, 60)' ||
+                    div.style.backgroundColor === 'rgb(149, 165, 166)'
                 );
                 
                 if (progressDiv) {
@@ -3965,14 +3998,14 @@
                 clearInterval(autoUpdateInterval);
             }
             
-            // Esperar 30 segundos antes de comenzar
+            // Esperar 15 segundos antes de comenzar
             setTimeout(() => {
-                console.log('=== COMENZANDO ACTUALIZACIÓN AUTOMÁTICA CADA 20 SEGUNDOS ===');
+                console.log('=== COMENZANDO ACTUALIZACIÓN AUTOMÁTICA CADA 10 SEGUNDOS ===');
                 
                 // Actualizar inmediatamente
                 updateExistingCards();
                 
-                // Configurar intervalo cada 20 segundos
+                // Configurar intervalo cada 10 segundos
                 autoUpdateInterval = setInterval(() => {
                     console.log('=== ACTUALIZACIÓN AUTOMÁTICA PROGRAMADA ===');
                     updateExistingCards();
@@ -4132,7 +4165,7 @@
         }
 
         // Función para filtrar dispositivos por edificio y estado
-        function filterDevicesByBuildingAndStatus(building, status) {
+        async function filterDevicesByBuildingAndStatus(building, status) {
             console.log('=== FILTRANDO POR EDIFICIO Y ESTADO ===');
             console.log('Edificio seleccionado:', building);
             console.log('Estado seleccionado:', status);
@@ -4150,63 +4183,273 @@
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
             
             // Cargar datos y aplicar filtros
-            loadUnitsData(null, currentUser).then(() => {
-                // Filtrar dispositivos por edificio
-                let filteredDevices = allDevicesData || [];
-                
-                if (building !== 'all') {
-                    filteredDevices = filteredDevices.filter(device => 
-                        device.buildingName && device.buildingName.toLowerCase() === building.toLowerCase()
-                    );
-                    console.log(`Dispositivos filtrados por edificio "${building}":`, filteredDevices.length);
+            await loadUnitsData(null, currentUser);
+            
+            // Filtrar dispositivos por edificio
+            let filteredDevices = allDevicesData || [];
+            
+            if (building !== 'all') {
+                filteredDevices = filteredDevices.filter(device => 
+                    device.buildingName && device.buildingName.toLowerCase() === building.toLowerCase()
+                );
+                console.log(`Dispositivos filtrados por edificio "${building}":`, filteredDevices.length);
+            }
+            
+            // Filtrar por estado (si no es 'all')
+            if (status !== 'all') {
+                try {
+                    const apiData = await getApiDataWithCache();
+                    if (apiData && apiData.success && apiData.data && Array.isArray(apiData.data)) {
+                        if (status === 'out-of-service') {
+                            // Filtrar solo dispositivos con alarmas
+                            console.log('=== DEBUGGING FILTRO DE ALARMAS ===');
+                            console.log('Datos de API disponibles:', apiData.data.length);
+                            
+                            console.log('Dispositivos antes del filtro:', filteredDevices.map(d => d.deviceId));
+                            console.log('IDs en API:', apiData.data.map(d => d.device_id));
+                            
+                            filteredDevices = filteredDevices.filter(device => {
+                                const deviceData = apiData.data.find(d => d.device_id === device.deviceId);
+                                console.log(`Dispositivo ${device.deviceId}:`, deviceData);
+                                
+                                if (deviceData) {
+                                    const hasAlarm = deviceData.OUT_OF_SERVICE || deviceData.FIRE_SERVICE || 
+                                                   deviceData.PHONE_COMM || deviceData.PIT_FLOODED;
+                                    console.log(`Alarmas para ${device.deviceId}:`, {
+                                        OUT_OF_SERVICE: deviceData.OUT_OF_SERVICE,
+                                        FIRE_SERVICE: deviceData.FIRE_SERVICE,
+                                        PHONE_COMM: deviceData.PHONE_COMM,
+                                        PIT_FLOODED: deviceData.PIT_FLOODED,
+                                        hasAlarm: hasAlarm
+                                    });
+                                    return hasAlarm;
+                                }
+                                console.log(`No se encontraron datos para ${device.deviceId}`);
+                                return false;
+                            });
+                            console.log(`Dispositivos filtrados por alarmas: ${filteredDevices.length}`);
+                        } else if (status === 'operational') {
+                            // Filtrar solo dispositivos operacionales
+                            filteredDevices = filteredDevices.filter(device => {
+                                const deviceData = apiData.data.find(d => d.device_id === device.deviceId);
+                                if (deviceData) {
+                                    return !(deviceData.OUT_OF_SERVICE || deviceData.FIRE_SERVICE || 
+                                            deviceData.PHONE_COMM || deviceData.PIT_FLOODED);
+                                }
+                                return true; // Si no hay datos de API, asumir operacional
+                            });
+                            console.log(`Dispositivos filtrados por operacional: ${filteredDevices.length}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error aplicando filtro de estado:', error);
                 }
-                
-                // Filtrar por estado (si no es 'all')
-                if (status !== 'all') {
-                    filteredDevices = filteredDevices.filter(device => {
-                        // Todos los dispositivos se consideran operacionales sin Firebase
-                        const deviceStatus = 'operational';
-                        
-                        return deviceStatus === status;
-                    });
-                    console.log(`Dispositivos filtrados por estado "${status}":`, filteredDevices.length);
-                }
-                
-                // Mostrar dispositivos filtrados
-                displayFilteredDevices(filteredDevices);
-            });
+            }
+            
+            // Mostrar dispositivos filtrados
+            await displayFilteredDevices(filteredDevices);
         }
         
-        // Función para mostrar dispositivos filtrados
-        function displayFilteredDevices(devices) {
+
+        // Función para aplicar filtros a la vista actual sin navegar
+        async function applyFiltersToCurrentView(building, status) {
+            console.log('=== APLICANDO FILTROS A LA VISTA ACTUAL ===');
+            
+            // Determinar en qué sección estamos
+            const currentScreen = getCurrentScreen();
+            console.log('Pantalla actual:', currentScreen);
+            
+            if (currentScreen === 'units-screen') {
+                // Si ya estamos en Units, aplicar filtros normalmente
+                await filterDevicesByBuildingAndStatus(building, status);
+            } else {
+                // Si estamos en otra sección, solo mostrar mensaje informativo
+                console.log('Filtros aplicados. Los filtros se aplicarán en la próxima búsqueda.');
+                // No hacer nada más para evitar recursión
+            }
+        }
+
+        // Función para obtener la pantalla actual
+        function getCurrentScreen() {
+            const screens = ['dashboard-screen', 'units-screen', 'service-screen', 'reports-screen', 'users-screen', 'devices-screen'];
+            for (const screen of screens) {
+                const element = document.getElementById(screen);
+                if (element && element.style.display !== 'none') {
+                    return screen;
+                }
+            }
+            return 'dashboard-screen'; // Por defecto
+        }
+
+        // Función para aplicar búsqueda con filtros
+        async function applySearchWithFilters(searchTerm, navigateToUnits = true) {
+            console.log('=== APLICANDO BÚSQUEDA CON FILTROS ===');
+            console.log('Término de búsqueda:', searchTerm);
+            
             const container = document.getElementById('units-grid');
             if (!container) {
                 console.error('No se encontró el contenedor units-grid');
                 return;
             }
             
-            // Limpiar contenedor
+            // Obtener filtros actuales
+            const selectedStatus = document.querySelector('input[name="status"]:checked')?.value || 'all';
+            const selectedBuilding = document.getElementById('buildingFilter')?.value || 'all';
+            
+            console.log('Filtros aplicados:', { status: selectedStatus, building: selectedBuilding });
+            
+            // Si no hay término de búsqueda, aplicar solo filtros
+            if (!searchTerm || searchTerm.trim() === '') {
+                console.log('Sin término de búsqueda, aplicando solo filtros');
+                if (navigateToUnits) {
+                    await filterDevicesByBuildingAndStatus(selectedBuilding, selectedStatus);
+                } else {
+                    // Aplicar filtros sin navegar, solo actualizar la vista actual
+                    await applyFiltersToCurrentView(selectedBuilding, selectedStatus);
+                }
+                return;
+            }
+            
+            // Navegar a la sección Units solo si se especifica
+            if (navigateToUnits) {
+                showScreen('units-screen');
+            }
+            
+            // Cargar datos si no están disponibles
+            if (!allDevicesData || allDevicesData.length === 0) {
+                console.log('Cargando datos para búsqueda con filtros...');
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                await loadUnitsData(null, currentUser);
+            }
+            
+            // Validar que tenemos datos para buscar
+            if (!allDevicesData || allDevicesData.length === 0) {
+                console.error('No hay datos disponibles para buscar');
+                container.innerHTML = '<div class="no-data">No hay datos disponibles para buscar</div>';
+                return;
+            }
+            
+            // Filtrar por término de búsqueda
+            let filteredDevices = allDevicesData.filter(device => {
+                if (!device) return false;
+                
+                const deviceId = String(device.deviceId || '').toLowerCase();
+                const building = String(device.buildingName || '').toLowerCase();
+                const unit = String(device.unitElevator || '').toLowerCase();
+                const email = String(device.clientEmail || '').toLowerCase();
+                
+                return deviceId.includes(searchTerm) ||
+                       building.includes(searchTerm) ||
+                       unit.includes(searchTerm) ||
+                       email.includes(searchTerm);
+            });
+            
+            console.log(`Encontrados ${filteredDevices.length} dispositivos que coinciden con "${searchTerm}"`);
+            
+            // Aplicar filtro por edificio
+            if (selectedBuilding !== 'all') {
+                filteredDevices = filteredDevices.filter(device => 
+                    device.buildingName && device.buildingName.toLowerCase() === selectedBuilding.toLowerCase()
+                );
+                console.log(`Después del filtro de edificio: ${filteredDevices.length} dispositivos`);
+            }
+            
+            // Aplicar filtro por estado (all vs operational vs alarm)
+            if (selectedStatus === 'out-of-service') {
+                // Filtrar solo dispositivos con alarmas
+                try {
+                    const apiData = await getApiDataWithCache();
+                    if (apiData && apiData.success && apiData.data && Array.isArray(apiData.data)) {
+                        console.log('=== DEBUGGING FILTRO DE ALARMAS EN BÚSQUEDA ===');
+                        console.log('Datos de API disponibles:', apiData.data.length);
+                        console.log('Dispositivos antes del filtro:', filteredDevices.map(d => d.deviceId));
+                        console.log('IDs en API:', apiData.data.map(d => d.device_id));
+                        
+                        filteredDevices = filteredDevices.filter(device => {
+                            const deviceData = apiData.data.find(d => d.device_id === device.deviceId);
+                            console.log(`Dispositivo ${device.deviceId}:`, deviceData);
+                            
+                            if (deviceData) {
+                                const hasAlarm = deviceData.OUT_OF_SERVICE || deviceData.FIRE_SERVICE || 
+                                               deviceData.PHONE_COMM || deviceData.PIT_FLOODED;
+                                console.log(`Alarmas para ${device.deviceId}:`, {
+                                    OUT_OF_SERVICE: deviceData.OUT_OF_SERVICE,
+                                    FIRE_SERVICE: deviceData.FIRE_SERVICE,
+                                    PHONE_COMM: deviceData.PHONE_COMM,
+                                    PIT_FLOODED: deviceData.PIT_FLOODED,
+                                    hasAlarm: hasAlarm
+                                });
+                                return hasAlarm;
+                            }
+                            console.log(`No se encontraron datos para ${device.deviceId}`);
+                            return false;
+                        });
+                        console.log(`Después del filtro de alarmas: ${filteredDevices.length} dispositivos`);
+                    }
+                } catch (error) {
+                    console.error('Error aplicando filtro de alarmas:', error);
+                }
+            } else if (selectedStatus === 'operational') {
+                // Filtrar solo dispositivos operacionales
+                try {
+                    const apiData = await getApiDataWithCache();
+                    if (apiData && apiData.success && apiData.data && Array.isArray(apiData.data)) {
+                        filteredDevices = filteredDevices.filter(device => {
+                            const deviceData = apiData.data.find(d => d.device_id === device.deviceId);
+                            if (deviceData) {
+                                return !(deviceData.OUT_OF_SERVICE || deviceData.FIRE_SERVICE || 
+                                        deviceData.PHONE_COMM || deviceData.PIT_FLOODED);
+                            }
+                            return true; // Si no hay datos de API, asumir operacional
+                        });
+                        console.log(`Después del filtro operacional: ${filteredDevices.length} dispositivos`);
+                    }
+                } catch (error) {
+                    console.error('Error aplicando filtro operacional:', error);
+                }
+            } else if (selectedStatus === 'all') {
+                // No aplicar filtro de estado, mostrar todos los dispositivos
+                console.log('Filtro "All Status" - mostrando todos los dispositivos');
+            }
+            
+            // Ordenar por alarmas y mostrar resultados
+            const sortedFilteredDevices = await sortDevicesByAlarms(filteredDevices);
+            console.log(`✅ Búsqueda con filtros: ${sortedFilteredDevices.length} dispositivos ordenados`);
+            
+            // Limpiar contenedor y mostrar resultados
             container.innerHTML = '';
             
-            if (devices.length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6c757d;">No devices found with the selected filters</div>';
+            if (sortedFilteredDevices.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data" style="text-align: center; padding: 40px; color: #6c757d;">
+                        <h3>No se encontraron resultados</h3>
+                        <p>No hay dispositivos que coincidan con "${searchTerm}"</p>
+                        <button onclick="showScreen('dashboard-screen')" class="btn btn-primary" style="margin-top: 15px;">Volver al Dashboard</button>
+                    </div>
+                `;
                 return;
             }
             
             // Mostrar dispositivos filtrados
-            devices.forEach((device, index) => {
-                const card = createDeviceElevatorCard(device, index);
-                if (card) {
-                    container.appendChild(card);
-                    console.log(`Dispositivo ${index + 1} agregado al contenedor`);
+            sortedFilteredDevices.forEach(async (device, index) => {
+                console.log(`Mostrando dispositivo filtrado ${index + 1}:`, device);
+                try {
+                    const card = await createDeviceElevatorCard(device, index);
+                    if (card && card instanceof Node) {
+                        container.appendChild(card);
+                    } else {
+                        console.error('Error: createDeviceElevatorCard no devolvió un nodo válido para:', device);
+                    }
+                } catch (error) {
+                    console.error('Error creando tarjeta para dispositivo:', device, error);
                 }
             });
             
-            console.log(`Mostrando ${devices.length} dispositivos filtrados`);
+            console.log('=== BÚSQUEDA CON FILTROS COMPLETADA ===');
         }
 
         // Función para filtrar elevadores/dispositivos
-        function filterElevators(searchTerm) {
+        async function filterElevators(searchTerm) {
             console.log('=== FILTRANDO DISPOSITIVOS ===');
             console.log('Término de búsqueda:', searchTerm);
             
@@ -4220,7 +4463,7 @@
                 console.log('Término de búsqueda vacío, recargando todos los dispositivos silenciosamente');
                 // Recarga silenciosa sin navegar a Units
                 const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-                loadUnitsData(null, currentUser);
+                await loadUnitsData(null, currentUser);
                 return;
             }
 
@@ -4272,16 +4515,10 @@
                 
                 // Cargar datos y luego filtrar
                 const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-                loadUnitsData(null, currentUser).then(() => {
-                    console.log('Datos cargados, aplicando filtro...');
-                    // Después de cargar, aplicar el filtro
-                    setTimeout(() => {
-                        filterElevators(searchTerm);
-                    }, 500);
-                }).catch(error => {
-                    console.error('Error al cargar datos para búsqueda:', error);
-                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #e74c3c;">Error al cargar datos para búsqueda</div>';
-                });
+                await loadUnitsData(null, currentUser);
+                console.log('Datos cargados, aplicando filtro...');
+                // Después de cargar, aplicar el filtro recursivamente
+                await filterElevators(searchTerm);
                 return;
             }
             
@@ -4300,16 +4537,20 @@
 
             console.log(`Encontrados ${filteredDevices.length} dispositivos que coinciden con "${searchTerm}"`);
 
+            // Ordenar dispositivos filtrados por alarmas (alarmas primero)
+            const sortedFilteredDevices = await sortDevicesByAlarms(filteredDevices);
+            console.log(`✅ Búsqueda: Dispositivos ordenados por alarmas`);
+
             // Limpiar contenedor
             container.innerHTML = '';
 
-            if (filteredDevices.length === 0) {
+            if (sortedFilteredDevices.length === 0) {
                 container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6c757d;">No se encontraron dispositivos que coincidan con la búsqueda</div>';
                 return;
             }
 
-            // Mostrar dispositivos filtrados
-            filteredDevices.forEach(async (device, index) => {
+            // Mostrar dispositivos filtrados ordenados
+            sortedFilteredDevices.forEach(async (device, index) => {
                 console.log(`Mostrando dispositivo filtrado ${index + 1}:`, device);
                 try {
                     const card = await createDeviceElevatorCard(device, index);
@@ -4327,7 +4568,7 @@
         }
 
         // Función para mostrar dispositivos filtrados
-        function displayFilteredDevices(filteredDevices) {
+        async function displayFilteredDevices(filteredDevices) {
             const container = document.getElementById('units-grid');
             if (!container) {
                 console.error('No se encontró el contenedor units-grid');
@@ -4339,11 +4580,15 @@
                 return;
             }
 
+            // Ordenar dispositivos filtrados por alarmas (alarmas primero)
+            const sortedFilteredDevices = await sortDevicesByAlarms(filteredDevices);
+            console.log(`✅ Filtros: Dispositivos ordenados por alarmas`);
+
             // Limpiar contenedor
             container.innerHTML = '';
 
-            // Mostrar dispositivos filtrados
-            filteredDevices.forEach(async (device, index) => {
+            // Mostrar dispositivos filtrados ordenados
+            sortedFilteredDevices.forEach(async (device, index) => {
                 console.log(`Mostrando dispositivo filtrado ${index + 1}:`, device);
                 try {
                     const card = await createDeviceElevatorCard(device, index);
@@ -4357,7 +4602,7 @@
                 }
             });
 
-            console.log(`Mostrando ${filteredDevices.length} dispositivos filtrados`);
+            console.log(`Mostrando ${sortedFilteredDevices.length} dispositivos filtrados ordenados`);
         }
 
 
@@ -4527,21 +4772,42 @@
         function generateReport() {
             const reportType = document.getElementById('reportType').value;
             const deviceSelect = document.getElementById('reportDeviceSelect');
-            const startDate = document.getElementById('reportStartDate').value;
-            const endDate = document.getElementById('reportEndDate').value;
             const reportMsg = document.getElementById('reportMsg');
             
-            // Validar campos requeridos
-            if (!startDate || !endDate) {
-                reportMsg.textContent = 'Please select both start and end dates';
-                reportMsg.className = 'error';
-                return;
-            }
+            let startDate, endDate, dateRangeText;
             
-            if (new Date(startDate) > new Date(endDate)) {
-                reportMsg.textContent = 'Start date must be before end date';
-                reportMsg.className = 'error';
-                return;
+            if (reportType === 'summary') {
+                // Para Monthly Summary, usar el selector de mes
+                const monthValue = document.getElementById('reportMonth').value;
+                if (!monthValue) {
+                    reportMsg.textContent = 'Please select a month for Monthly Summary';
+                    reportMsg.className = 'error';
+                    return;
+                }
+                
+                // Convertir mes seleccionado a rango de fechas
+                const [year, month] = monthValue.split('-');
+                startDate = `${year}-${month}-01`;
+                endDate = `${year}-${month}-${new Date(year, month, 0).getDate()}`;
+                dateRangeText = `${monthValue} (${startDate} to ${endDate})`;
+            } else {
+                // Para otros tipos de reporte, usar date range
+                startDate = document.getElementById('reportStartDate').value;
+                endDate = document.getElementById('reportEndDate').value;
+                
+                if (!startDate || !endDate) {
+                    reportMsg.textContent = 'Please select both start and end dates';
+                    reportMsg.className = 'error';
+                    return;
+                }
+                
+                if (new Date(startDate) > new Date(endDate)) {
+                    reportMsg.textContent = 'Start date must be before end date';
+                    reportMsg.className = 'error';
+                    return;
+                }
+                
+                dateRangeText = `${startDate} to ${endDate}`;
             }
             
             // Simular generación de reporte
@@ -4549,7 +4815,7 @@
             reportMsg.className = 'success';
             
             setTimeout(() => {
-                reportMsg.textContent = `Report generated successfully! Type: ${reportType}, Device: ${deviceSelect.options[deviceSelect.selectedIndex].text}, Date Range: ${startDate} to ${endDate}`;
+                reportMsg.textContent = `Report generated successfully! Type: ${reportType}, Device: ${deviceSelect.options[deviceSelect.selectedIndex].text}, Date Range: ${dateRangeText}`;
                 reportMsg.className = 'success';
                 
                 // Simular descarga
@@ -5365,28 +5631,51 @@
             const searchBtn = document.getElementById('search-btn');
             
             if (searchInput && !searchInput.hasAttribute('data-listener-added')) {
+                // Event listener para Enter en el input
                 searchInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
-                        const searchTerm = this.value.toLowerCase();
-                        filterElevators(searchTerm);
-                        // Marcar que se hizo búsqueda
-                        searchButtonPressed = true;
+                        const searchTerm = this.value.trim().toLowerCase();
+                        if (searchTerm) {
+                            console.log('🔍 Búsqueda por Enter (sin navegar):', searchTerm);
+                            applySearchWithFilters(searchTerm, false); // false = no navegar a Units
+                            // Limpiar el input después de buscar
+                            this.value = '';
+                        }
                     }
                 });
+                
+                // Event listener para búsqueda en tiempo real (opcional)
+                searchInput.addEventListener('input', function(e) {
+                    const searchTerm = e.target.value.trim().toLowerCase();
+                    // Solo buscar si hay al menos 2 caracteres, pero SIN navegar a Units
+                    if (searchTerm.length >= 2) {
+                        console.log('🔍 Búsqueda en tiempo real (sin navegar):', searchTerm);
+                        applySearchWithFilters(searchTerm, false); // false = no navegar a Units
+                    } else if (searchTerm.length === 0) {
+                        // Si se borra todo, volver al dashboard
+                        console.log('🔄 Limpiando búsqueda, volviendo al dashboard');
+                        showScreen('dashboard-screen');
+                        loadDashboardData();
+                    }
+                });
+                
                 searchInput.setAttribute('data-listener-added', 'true');
-                console.log('✅ Event listener agregado al input de búsqueda');
+                console.log('✅ Event listeners agregados al input de búsqueda');
             }
 
             if (searchBtn && !searchBtn.hasAttribute('data-listener-added')) {
                 searchBtn.addEventListener('click', function() {
-                    const searchTerm = document.getElementById('search-input').value.toLowerCase();
-                    filterElevators(searchTerm);
-                    // Limpiar el input después de buscar
-                    document.getElementById('search-input').value = '';
-                    // Marcar que se presionó el botón de búsqueda
-                    searchButtonPressed = true;
-                    console.log('🔍 Búsqueda realizada y input limpiado');
-                    console.log('🚩 searchButtonPressed =', searchButtonPressed);
+                    const searchTerm = document.getElementById('search-input').value.trim().toLowerCase();
+                    if (searchTerm) {
+                        console.log('🔍 Búsqueda por botón (navegando a Units):', searchTerm);
+                        applySearchWithFilters(searchTerm, true); // true = navegar a Units
+                        // Limpiar el input después de buscar
+                        document.getElementById('search-input').value = '';
+                    } else {
+                        console.log('🔍 Botón presionado sin término - mostrando todos con status seleccionado');
+                        // Si no hay término de búsqueda, mostrar todos los dispositivos con el status seleccionado
+                        applySearchWithFilters('', true); // true = navegar a Units, '' = sin término
+                    }
                 });
                 searchBtn.setAttribute('data-listener-added', 'true');
                 console.log('✅ Event listener agregado al botón de búsqueda');
@@ -5403,6 +5692,29 @@
             
             // Agregar event listeners de búsqueda inicialmente
             addSearchEventListeners();
+            
+            // Event listener para cambio de tipo de reporte
+            const reportTypeSelect = document.getElementById('reportType');
+            if (reportTypeSelect) {
+                reportTypeSelect.addEventListener('change', function() {
+                    const reportType = this.value;
+                    const dateRangeContainer = document.getElementById('dateRangeContainer');
+                    const monthSelectorContainer = document.getElementById('monthSelectorContainer');
+                    
+                    if (reportType === 'summary') {
+                        // Mostrar selector de mes y ocultar date range
+                        dateRangeContainer.style.display = 'none';
+                        monthSelectorContainer.style.display = 'block';
+                        console.log('Cambiado a Monthly Summary - mostrando selector de mes');
+                    } else {
+                        // Mostrar date range y ocultar selector de mes
+                        dateRangeContainer.style.display = 'grid';
+                        monthSelectorContainer.style.display = 'none';
+                        console.log('Cambiado a otro tipo de reporte - mostrando date range');
+                    }
+                });
+                console.log('✅ Event listener agregado al selector de tipo de reporte');
+            }
             
             // Botón de filtro - abrir modal (primer botón del header-right)
             document.querySelector('.header-right .icon-btn').addEventListener('click', function() {
@@ -5442,8 +5754,11 @@
                 
                 console.log('Filtros aplicados:', { status: selectedStatus, building: selectedBuilding });
                 
-                // Filtrar dispositivos por edificio y estado
-                filterDevicesByBuildingAndStatus(selectedBuilding, selectedStatus);
+                // Obtener el término de búsqueda actual
+                const currentSearchTerm = document.getElementById('search-input').value.toLowerCase();
+                
+                // Aplicar filtros a la búsqueda actual (sin navegar a Units)
+                applySearchWithFilters(currentSearchTerm, false);
                 
                 document.getElementById('filter-modal').style.display = 'none';
             });
@@ -6225,194 +6540,315 @@
         }
 
 
-        // Función para generar y descargar PDF de reportes
-        function generateReportPDF() {
-            console.log('=== GENERANDO PDF DE REPORTE ===');
+        // Function to get data from reports API
+        async function fetchReportsData() {
+            const API_URL = 'https://script.google.com/macros/s/AKfycbwmymPhQ89H9I0Mc25PYBYcgLSFANar8FyWbFTF0wCzk8OCbm6IXproy9YFhgKvpOJD_w/exec';
             
             try {
-                // Verificar que jsPDF esté disponible
+                console.log('Fetching data from API...');
+                const response = await fetch(API_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Data received from API:', data);
+                
+                if (data.success && data.data) {
+                    return data.data;
+                } else {
+                    throw new Error('API returned unsuccessful response');
+                }
+            } catch (error) {
+                console.error('Error fetching data from API:', error);
+                throw error;
+            }
+        }
+
+        // Function to filter data by device and date range
+        function filterReportsData(data, deviceId, startDate, endDate) {
+            let filteredData = data;
+            
+            // Filter by device if not "all"
+            if (deviceId !== 'all') {
+                filteredData = filteredData.filter(item => item.device_id === deviceId);
+            }
+            
+            // Filter by date range
+            if (startDate && endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                
+                filteredData = filteredData.filter(item => {
+                    const itemDate = new Date(item.timestamp);
+                    return itemDate >= start && itemDate <= end;
+                });
+            }
+            
+            return filteredData;
+        }
+
+        // Function to generate and download PDF reports
+        async function generateReportPDF() {
+            console.log('=== GENERATING REPORT PDF ===');
+            
+            try {
+                // Check if jsPDF is available
                 if (typeof window.jspdf === 'undefined') {
-                    console.error('jsPDF no está disponible');
+                    console.error('jsPDF is not available');
                     alert('Error: jsPDF library not loaded. Please refresh the page.');
                     return;
                 }
                 
-                // Obtener datos del formulario
+                // Show loading message
+                const reportMsg = document.getElementById('reportMsg');
+                reportMsg.textContent = 'Fetching data from API...';
+                reportMsg.className = 'success-msg';
+                
+                // Get form data
                 const reportType = document.getElementById('reportType').value;
                 const deviceSelect = document.getElementById('reportDeviceSelect');
                 const selectedDevice = deviceSelect.value;
-                const startDate = document.getElementById('reportStartDate').value;
-                const endDate = document.getElementById('reportEndDate').value;
                 const comments = document.getElementById('reportComments').value;
                 
-                console.log('Datos del formulario:', {
+                let startDate, endDate, dateRangeText;
+                
+                if (reportType === 'summary') {
+                    // For Monthly Summary, use month selector
+                    const monthValue = document.getElementById('reportMonth').value;
+                    if (!monthValue) {
+                        alert('Please select a month for Monthly Summary');
+                        return;
+                    }
+                    
+                    // Convert selected month to date range
+                    const [year, month] = monthValue.split('-');
+                    startDate = `${year}-${month}-01`;
+                    endDate = `${year}-${month}-${new Date(year, month, 0).getDate()}`;
+                    dateRangeText = `${monthValue} (${startDate} to ${endDate})`;
+                } else {
+                    // For other report types, use date range
+                    startDate = document.getElementById('reportStartDate').value;
+                    endDate = document.getElementById('reportEndDate').value;
+                    
+                    if (!startDate || !endDate) {
+                        alert('Please select both start and end dates');
+                        return;
+                    }
+                    
+                    if (new Date(startDate) > new Date(endDate)) {
+                        alert('Start date must be before end date');
+                        return;
+                    }
+                    
+                    dateRangeText = `${startDate} to ${endDate}`;
+                }
+                
+                // Get data from API
+                reportMsg.textContent = 'Processing data...';
+                const apiData = await fetchReportsData();
+                
+                // Filter data according to selected criteria
+                const filteredData = filterReportsData(apiData, selectedDevice, startDate, endDate);
+                
+                console.log('Filtered data:', filteredData);
+                
+                if (filteredData.length === 0) {
+                    reportMsg.textContent = 'No data found for the selected criteria';
+                    reportMsg.className = 'success-msg error';
+                    return;
+                }
+                
+                reportMsg.textContent = 'Generating PDF...';
+                
+                console.log('Form data:', {
                     reportType,
                     selectedDevice,
                     startDate,
                     endDate,
-                    comments
+                    dateRangeText,
+                    comments,
+                    filteredDataCount: filteredData.length
                 });
                 
-                // Crear nuevo documento PDF
+                // Create new PDF document
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
-            
-            // Configurar fuente y colores
-            doc.setFont('helvetica');
-            
-            // Título del reporte
-            doc.setFontSize(20);
-            doc.setTextColor(44, 62, 80); // Color azul oscuro
-            doc.text('BERMUDA ELEVATORS', 20, 30);
-            doc.text('REPORTE DE SISTEMA', 20, 40);
-            
-            // Línea separadora
-            doc.setDrawColor(44, 62, 80);
-            doc.setLineWidth(0.5);
-            doc.line(20, 45, 190, 45);
-            
-            // Información del reporte
-            doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Report Type: ${reportType}`, 20, 60);
-            doc.text(`Device: ${selectedDevice === 'all' ? 'All Devices' : selectedDevice}`, 20, 70);
-            doc.text(`Start Date: ${startDate || 'Not specified'}`, 20, 80);
-            doc.text(`End Date: ${endDate || 'Not specified'}`, 20, 90);
-            doc.text(`Generated: ${new Date().toLocaleString('en-US')}`, 20, 100);
-            
-                // Inicializar yPosition
-                let yPosition = 110;
                 
-                // Agregar comentarios del técnico si existen
+                // Configure font and sizes
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const margin = 20;
+                let yPosition = margin;
+                
+                // Function to add text with wrap
+                function addText(text, x, y, maxWidth, fontSize = 10) {
+                    doc.setFontSize(fontSize);
+                    const lines = doc.splitTextToSize(text, maxWidth);
+                    doc.text(lines, x, y);
+                    return y + (lines.length * fontSize * 0.4);
+                }
+                
+                // Function to add new page if needed
+                function checkNewPage(requiredSpace) {
+                    if (yPosition + requiredSpace > pageHeight - margin) {
+                        doc.addPage();
+                        yPosition = margin;
+                        return true;
+                    }
+                    return false;
+                }
+                
+                // Report header
+                doc.setFillColor(11, 61, 145);
+                doc.rect(0, 0, pageWidth, 30, 'F');
+                
+                doc.setTextColor(255, 255, 255);
+                yPosition = addText('BERMUDA ELEVATORS - SYSTEM REPORT', margin, 20, pageWidth - 2 * margin, 16);
+                
+                doc.setTextColor(0, 0, 0);
+                yPosition += 10;
+                
+                // Report information
+                const reportTypeText = {
+                    'alarms': 'Alarm History Report',
+                    'service': 'Service Log Report',
+                    'summary': 'Monthly Summary Report'
+                };
+                
+                yPosition = addText(`Report Type: ${reportTypeText[reportType]}`, margin, yPosition, pageWidth - 2 * margin, 12);
+                yPosition = addText(`Device: ${selectedDevice === 'all' ? 'All Devices' : selectedDevice}`, margin, yPosition, pageWidth - 2 * margin, 12);
+                yPosition = addText(`Date Range: ${dateRangeText}`, margin, yPosition, pageWidth - 2 * margin, 12);
+                yPosition = addText(`Total Records: ${filteredData.length}`, margin, yPosition, pageWidth - 2 * margin, 12);
+                yPosition = addText(`Generated: ${new Date().toLocaleString('en-US')}`, margin, yPosition, pageWidth - 2 * margin, 12);
+                
+                yPosition += 15;
+                
+                // Technician comments if provided
                 if (comments && comments.trim()) {
-                    doc.text(`Technician Comments:`, 20, yPosition);
+                    checkNewPage(30);
+                    doc.setFillColor(248, 249, 250);
+                    doc.rect(margin, yPosition - 5, pageWidth - 2 * margin, 25, 'F');
+                    yPosition = addText('Technician Comments:', margin, yPosition, pageWidth - 2 * margin, 10);
+                    yPosition = addText(comments, margin, yPosition, pageWidth - 2 * margin, 9);
                     yPosition += 10;
+                }
+                
+                // Data table
+                checkNewPage(50);
+                
+                // Table headers
+                const tableHeaders = ['Timestamp', 'Device', 'Event', 'Previous Value', 'New Value', 'Email Sent', 'Push Sent'];
+                const colWidths = [35, 20, 30, 20, 20, 20, 20];
+                const colPositions = [margin];
+                
+                for (let i = 1; i < colWidths.length; i++) {
+                    colPositions.push(colPositions[i-1] + colWidths[i-1]);
+                }
+                
+                // Draw headers
+                doc.setFillColor(240, 240, 240);
+                doc.rect(margin, yPosition, pageWidth - 2 * margin, 15, 'F');
+                
+                tableHeaders.forEach((header, index) => {
+                    doc.setFontSize(8);
+                    doc.text(header, colPositions[index], yPosition + 10);
+                });
+                
+                yPosition += 20;
+                
+                // Add table data
+                filteredData.forEach((item, index) => {
+                    checkNewPage(15);
                     
-                    // Dividir comentarios largos en múltiples líneas
-                    const maxWidth = 170;
-                    const splitComments = doc.splitTextToSize(comments, maxWidth);
-                    splitComments.forEach(line => {
-                        doc.text(line, 20, yPosition);
-                        yPosition += 5;
+                    // Alternate row color
+                    if (index % 2 === 0) {
+                        doc.setFillColor(255, 255, 255);
+                    } else {
+                        doc.setFillColor(248, 249, 250);
+                    }
+                    doc.rect(margin, yPosition - 5, pageWidth - 2 * margin, 15, 'F');
+                    
+                    // Row data
+                    const rowData = [
+                        item.timestamp,
+                        item.device_id,
+                        item.input_changed,
+                        item.old_value ? 'Yes' : 'No',
+                        item.new_value ? 'Yes' : 'No',
+                        item.email_sent,
+                        item.push_sent
+                    ];
+                    
+                    rowData.forEach((data, colIndex) => {
+                        doc.setFontSize(7);
+                        const text = String(data).substring(0, 15); // Truncate long text
+                        doc.text(text, colPositions[colIndex], yPosition + 5);
                     });
-                    yPosition += 5; // Espacio adicional después de los comentarios
-                }
-            
-            // Línea separadora
-            doc.line(20, yPosition, 190, yPosition);
-            yPosition += 10;
-            
-            // Contenido del reporte basado en el tipo
-            
-            if (reportType === 'alarms') {
-                doc.setFontSize(16);
-                doc.setTextColor(44, 62, 80);
-                doc.text('REPORTE DE ALARMAS', 20, yPosition);
-                yPosition += 15;
+                    
+                    yPosition += 15;
+                });
+                
+                // Statistical summary
+                yPosition += 20;
+                checkNewPage(60);
                 
                 doc.setFontSize(12);
-                doc.setTextColor(0, 0, 0);
-                doc.text('No hay datos de alarmas disponibles en este momento.', 20, yPosition);
-                yPosition += 10;
-                doc.text('Los datos de alarmas se registrarán automáticamente', 20, yPosition);
-                yPosition += 10;
-                doc.text('cuando se detecten eventos en los elevadores.', 20, yPosition);
-                
-            } else if (reportType === 'service') {
-                doc.setFontSize(16);
-                doc.setTextColor(44, 62, 80);
-                doc.text('REPORTE DE SERVICIOS', 20, yPosition);
+                doc.text('STATISTICAL SUMMARY', margin, yPosition);
                 yPosition += 15;
                 
-                doc.setFontSize(12);
-                doc.setTextColor(0, 0, 0);
-                doc.text('No hay registros de servicio disponibles en este momento.', 20, yPosition);
-                yPosition += 10;
-                doc.text('Los registros de servicio se crearán cuando se', 20, yPosition);
-                yPosition += 10;
-                doc.text('realicen mantenimientos o reparaciones.', 20, yPosition);
+                // Count events by type
+                const eventCounts = {};
+                const deviceCounts = {};
                 
-            } else if (reportType === 'summary') {
-                doc.setFontSize(16);
-                doc.setTextColor(44, 62, 80);
-                doc.text('RESUMEN MENSUAL', 20, yPosition);
-                yPosition += 15;
+                filteredData.forEach(item => {
+                    eventCounts[item.input_changed] = (eventCounts[item.input_changed] || 0) + 1;
+                    deviceCounts[item.device_id] = (deviceCounts[item.device_id] || 0) + 1;
+                });
                 
-                doc.setFontSize(12);
-                doc.setTextColor(0, 0, 0);
-                doc.text('No hay datos de resumen disponibles en este momento.', 20, yPosition);
-                yPosition += 10;
-                doc.text('El resumen mensual se generará automáticamente', 20, yPosition);
-                yPosition += 10;
-                doc.text('al final de cada mes con las estadísticas del sistema.', 20, yPosition);
-            }
-            
-                // Pie de página
-                yPosition = 280;
                 doc.setFontSize(10);
-                doc.setTextColor(108, 117, 125); // Color gris
-                doc.text('Este reporte fue generado automáticamente por el Sistema de Control de Elevadores', 20, yPosition);
-                doc.text('Bermuda Elevators - Sistema de Monitoreo en Tiempo Real', 20, yPosition + 10);
+                yPosition = addText('Events by Type:', margin, yPosition, pageWidth - 2 * margin, 10);
                 
-                // Descargar el PDF
-                const fileName = `Reporte_${reportType}_${new Date().toISOString().split('T')[0]}.pdf`;
-                console.log('Intentando descargar PDF:', fileName);
-                doc.save(fileName);
+                Object.entries(eventCounts).forEach(([event, count]) => {
+                    yPosition = addText(`  • ${event}: ${count} occurrences`, margin + 10, yPosition, pageWidth - 2 * margin, 9);
+                });
                 
-                console.log('PDF generado y descargado:', fileName);
+                yPosition += 5;
+                yPosition = addText('Events by Device:', margin, yPosition, pageWidth - 2 * margin, 10);
                 
-                // Mostrar mensaje de éxito
-                const reportMsg = document.getElementById('reportMsg');
-                if (reportMsg) {
-                    reportMsg.textContent = 'PDF generado y descargado exitosamente';
-                    reportMsg.className = 'success';
-                    setTimeout(() => {
-                        reportMsg.textContent = '';
-                        reportMsg.className = '';
-                    }, 3000);
+                Object.entries(deviceCounts).forEach(([device, count]) => {
+                    yPosition = addText(`  • ${device}: ${count} events`, margin + 10, yPosition, pageWidth - 2 * margin, 9);
+                });
+                
+                // Footer
+                const totalPages = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= totalPages; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(128, 128, 128);
+                    doc.text(`Page ${i} of ${totalPages}`, pageWidth - 30, pageHeight - 10);
+                    doc.text('Generated by Bermuda Elevators System', margin, pageHeight - 10);
                 }
+                
+                // Generate filename
+                const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                const deviceSuffix = selectedDevice === 'all' ? 'all' : selectedDevice;
+                const filename = `bermuda_report_${reportType}_${deviceSuffix}_${timestamp}.pdf`;
+                
+                // Download PDF
+                doc.save(filename);
+                
+                reportMsg.textContent = `Report generated successfully: ${filename}`;
+                reportMsg.className = 'success-msg success';
+                
+                console.log('PDF generated successfully:', filename);
                 
             } catch (error) {
-                console.error('Error generando PDF:', error);
-                alert('Error generando PDF: ' + error.message);
-                
+                console.error('Error generating PDF:', error);
                 const reportMsg = document.getElementById('reportMsg');
-                if (reportMsg) {
-                    reportMsg.textContent = 'Error generando PDF: ' + error.message;
-                    reportMsg.className = 'error';
-                }
-            }
-        }
-        
-        // Función de prueba simple para PDF
-        function testPDF() {
-            console.log('=== PRUEBA SIMPLE DE PDF ===');
-            try {
-                if (typeof window.jspdf === 'undefined') {
-                    console.error('jsPDF no disponible');
-                    alert('Error: jsPDF library not loaded');
-                    return;
-                }
-                
-                console.log('jsPDF disponible, creando documento...');
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                
-                console.log('Documento creado, agregando texto...');
-                doc.text('Bermuda Elevators - Test Report', 20, 20);
-                doc.text('Fecha: ' + new Date().toLocaleString(), 20, 30);
-                doc.text('Este es un PDF de prueba', 20, 40);
-                
-                console.log('Texto agregado, guardando PDF...');
-                const fileName = 'test_report_' + new Date().getTime() + '.pdf';
-                doc.save(fileName);
-                
-                console.log('PDF de prueba generado exitosamente:', fileName);
-                alert('PDF de prueba generado exitosamente: ' + fileName);
-                
-            } catch (error) {
-                console.error('Error en prueba PDF:', error);
-                alert('Error generando PDF de prueba: ' + error.message);
+                reportMsg.textContent = `Error generating report: ${error.message}`;
+                reportMsg.className = 'success-msg error';
             }
         }
 
