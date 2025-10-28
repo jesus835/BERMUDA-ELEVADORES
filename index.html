@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bermuda Elevators - Elevator Management System</title>
+    <title>Bermuda Elevator - Elevator Management System</title>
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0b3d91">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Bermuda Elevators">
+    <meta name="apple-mobile-web-app-title" content="Bermuda Elevator">
     
     <!-- PWA Icons -->
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -1583,7 +1583,7 @@
     <div id="login-screen" class="login-screen">
         <div class="login-container">
             <div class="login-logo">
-                <h1>Bermuda Elevators</h1>
+                <h1>Bermuda Elevator</h1>
             </div>
             
             <div class="login-form">
@@ -1610,7 +1610,7 @@
     <!-- Loading Screen -->
     <div id="loading-screen" class="loading-screen" style="display: none;">
         <div class="loading-logo">
-            Bermuda<span class="highlight">Elevators</span>
+            Bermuda<span class="highlight"> Elevator</span>
         </div>
         <div class="loading-dots">
             <div class="loading-dot"></div>
@@ -1718,7 +1718,7 @@
                 </div>
                 <div class="header-center">
                     <div class="logo-container">
-                        <img src="https://i.imgur.com/A6T3whG.png" alt="Bermuda Elevators" class="header-logo">
+                        <img src="https://i.imgur.com/A6T3whG.png" alt="Bermuda Elevator" class="header-logo">
                     </div>
                 </div>
                 <div class="header-right">
@@ -1756,7 +1756,7 @@
 
                 <div class="search-container">
                     <div class="search-bar">
-                        <input type="text" class="search-input" placeholder="Search elevators..." id="search-input">
+                        <input type="text" class="search-input" placeholder="Search elevator..." id="search-input">
                         <button class="search-btn" id="search-btn">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"></circle>
@@ -1857,6 +1857,14 @@
                         <select id="serviceType" style="width:100%;padding:8px;font-size:0.9rem;">
                           <option value="emergency">Emergency Call</option>
                           <option value="inspection">Inspection</option>
+                          <option value="maintenance">Routine Maintenance</option>
+                          <option value="repair">Repair Service</option>
+                          <option value="cleaning">Cleaning Service</option>
+                          <option value="testing">System Testing</option>
+                          <option value="software">Software Update</option>
+                          <option value="upgrade">System Upgrade</option>
+                          <option value="preventive">Preventive Maintenance</option>
+                          <option value="diagnostic">Diagnostic Check</option>
                         </select>
                       </div>
                       <div class="form-group">
@@ -3425,7 +3433,7 @@
                 // Crear formulario para enviar por email
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = 'https://script.google.com/macros/s/AKfycbzi3b979z6iM93hIGavhnSeX2LPSzc6CIhZrngZT2K2Nriw5tBUZuIjjRNYNw3P3wynAg/exec';
+                form.action = 'https://script.google.com/macros/s/AKfycbwxvG6yNyf9-WbtO0rIEtULcz0-2c9EYG72ZOX7cHoEtvYYsHmV7-ixRvczcdi3zdwQaw/exec';
                 form.target = 'hiddenIframe';
                 form.style.display = 'none';
                 
@@ -3440,7 +3448,9 @@
                     serviceType: serviceEntry.type,
                     serviceNotes: serviceEntry.notes,
                     serviceDate: serviceEntry.date,
-                    reportId: serviceEntry.id
+                    reportId: serviceEntry.id,
+                    companyName: 'BERMUDA ELEVATOR',
+                    supportEmail: 'jose@elevator.bm'
                 };
                 
                 Object.keys(fields).forEach(key => {
@@ -3739,7 +3749,7 @@
         const AUTO_UPDATE_INTERVAL = 10000; // 10 segundos entre actualizaciones
         
         // Configuración de email de destino para reportes de servicio
-        const SERVICE_REPORT_EMAIL = 'bermudaelevadores@gmail.com'; // Cambia aquí el email de destino
+        const SERVICE_REPORT_EMAIL = 'jose@elevator.bm'; // Cambia aquí el email de destino
 
         // Función para obtener datos de la API con cache
         async function getApiDataWithCache() {
@@ -6746,7 +6756,7 @@
                 doc.rect(0, 0, pageWidth, 30, 'F');
                 
                 doc.setTextColor(255, 255, 255);
-                yPosition = addText('BERMUDA ELEVATORS - SYSTEM REPORT', margin, 20, pageWidth - 2 * margin, 16);
+                yPosition = addText('BERMUDA ELEVATOR - SYSTEM REPORT', margin, 20, pageWidth - 2 * margin, 16);
                 
                 doc.setTextColor(0, 0, 0);
                 yPosition += 10;
@@ -6869,7 +6879,7 @@
                     doc.setFontSize(8);
                     doc.setTextColor(128, 128, 128);
                     doc.text(`Page ${i} of ${totalPages}`, pageWidth - 30, pageHeight - 10);
-                    doc.text('Generated by Bermuda Elevators System', margin, pageHeight - 10);
+                    doc.text('Generated by Bermuda Elevator System', margin, pageHeight - 10);
                 }
                 
                 // Generate filename
@@ -7072,6 +7082,49 @@
         }
 
         // Función para cargar datos de la aplicación con pantalla de carga
+        // Función para configurar opciones de servicio según el rol del usuario
+        function configureServiceOptions(currentUser) {
+            const serviceTypeSelect = document.getElementById('serviceType');
+            if (!serviceTypeSelect) return;
+            
+            // Limpiar opciones existentes
+            serviceTypeSelect.innerHTML = '';
+            
+            // Opciones básicas para todos los usuarios
+            const basicOptions = [
+                { value: 'emergency', text: 'Emergency Call' },
+                { value: 'inspection', text: 'Inspection' }
+            ];
+            
+            // Opciones adicionales para Admin y Technician
+            const advancedOptions = [
+                { value: 'maintenance', text: 'Routine Maintenance' },
+                { value: 'repair', text: 'Repair Service' },
+                { value: 'cleaning', text: 'Cleaning Service' },
+                { value: 'testing', text: 'System Testing' },
+                { value: 'software', text: 'Software Update' },
+                { value: 'upgrade', text: 'System Upgrade' },
+                { value: 'preventive', text: 'Preventive Maintenance' },
+                { value: 'diagnostic', text: 'Diagnostic Check' }
+            ];
+            
+            // Agregar opciones según el rol
+            let optionsToShow = basicOptions;
+            if (currentUser.role === 'Admin' || currentUser.role === 'Technician') {
+                optionsToShow = [...basicOptions, ...advancedOptions];
+            }
+            
+            // Crear opciones en el select
+            optionsToShow.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option.value;
+                optionElement.textContent = option.text;
+                serviceTypeSelect.appendChild(optionElement);
+            });
+            
+            console.log(`Opciones de servicio configuradas para rol: ${currentUser.role} (${optionsToShow.length} opciones)`);
+        }
+
         async function loadAppData() {
             console.log('=== INICIANDO CARGA DE DATOS DE LA APLICACIÓN ===');
             
@@ -7122,6 +7175,9 @@
                     // Iniciar actualización automática incluso si hay error
                     startAutoUpdate();
                 });
+                
+                // Configurar opciones de servicio según el rol del usuario
+                configureServiceOptions(currentUser);
                 
                 console.log('=== APLICACIÓN CARGADA EXITOSAMENTE ===');
                 
@@ -7449,22 +7505,37 @@
 
     <!-- PWA Service Worker -->
     <script>
+        // Variable para controlar si hay actualizaciones pendientes
+        let isUpdateAvailable = false;
+        let registration = null;
+
         // Registrar Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then((registration) => {
-                        console.log('✅ Service Worker registrado:', registration.scope);
+                    .then((reg) => {
+                        registration = reg;
+                        console.log('✅ Service Worker registrado:', reg.scope);
+                        
+                        // Verificar actualizaciones periódicamente
+                        setInterval(() => {
+                            reg.update();
+                        }, 60000); // Verificar cada minuto
                         
                         // Verificar actualizaciones
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
+                        reg.addEventListener('updatefound', () => {
+                            console.log('🔄 Actualización encontrada');
+                            const newWorker = reg.installing;
                             newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log('🔄 Nueva versión disponible');
-                                    // Opcional: Mostrar notificación de actualización
-                                    if (confirm('Nueva versión disponible. ¿Recargar la página?')) {
-                                        window.location.reload();
+                                if (newWorker.state === 'installed') {
+                                    if (navigator.serviceWorker.controller) {
+                                        // Hay una nueva versión disponible
+                                        console.log('🔄 Nueva versión disponible');
+                                        isUpdateAvailable = true;
+                                        showUpdateNotification();
+                                    } else {
+                                        // Primera instalación
+                                        console.log('✅ PWA instalada por primera vez');
                                     }
                                 }
                             });
@@ -7475,6 +7546,107 @@
                     });
             });
         }
+
+        // Función para mostrar notificación de actualización
+        function showUpdateNotification() {
+            // Crear notificación elegante
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #0b3d91, #1e1e1e);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-family: 'Roboto', sans-serif;
+                max-width: 300px;
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <div style="background: #4CAF50; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                        <span style="color: white; font-weight: bold;">!</span>
+                    </div>
+                    <h3 style="margin: 0; font-size: 16px;">Actualización Disponible</h3>
+                </div>
+                <p style="margin: 0 0 15px 0; font-size: 14px; opacity: 0.9;">
+                    Hay una nueva versión disponible. ¿Deseas actualizar ahora?
+                </p>
+                <div style="display: flex; gap: 10px;">
+                    <button id="updateNow" style="
+                        background: #4CAF50;
+                        color: white;
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        flex: 1;
+                    ">Actualizar Ahora</button>
+                    <button id="updateLater" style="
+                        background: transparent;
+                        color: white;
+                        border: 1px solid #666;
+                        padding: 8px 16px;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        flex: 1;
+                    ">Después</button>
+                </div>
+            `;
+            
+            // Agregar estilos de animación
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(notification);
+            
+            // Event listeners para los botones
+            document.getElementById('updateNow').addEventListener('click', () => {
+                if (registration && registration.waiting) {
+                    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                }
+                window.location.reload();
+            });
+            
+            document.getElementById('updateLater').addEventListener('click', () => {
+                notification.remove();
+                isUpdateAvailable = false;
+            });
+            
+            // Auto-ocultar después de 10 segundos
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 10000);
+        }
+
+        // Función para forzar actualización
+        function forceUpdate() {
+            if (registration && registration.waiting) {
+                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                window.location.reload();
+            } else if (registration) {
+                registration.update().then(() => {
+                    window.location.reload();
+                });
+            }
+        }
+
+        // Exponer función globalmente para uso manual
+        window.forceUpdate = forceUpdate;
 
         // Instalar PWA
         let deferredPrompt;
@@ -7530,7 +7702,7 @@
                                 overflow: hidden;
                                 text-overflow: ellipsis;
                             ">
-                                Bermuda Elevators
+                                Bermuda Elevator
                             </div>
                             <div style="
                                 font-size: 14px;

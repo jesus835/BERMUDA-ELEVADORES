@@ -1,7 +1,7 @@
 // Bermuda Elevators - Service Worker
 // Permite que la app funcione offline
 
-const CACHE_NAME = 'bermuda-elevators-v1';
+const CACHE_NAME = 'bermuda-elevators-v' + new Date().getTime();
 const urlsToCache = [
   './',
   './index.html',
@@ -40,46 +40,74 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
+    }).then(() => {
+      // Forzar que el nuevo service worker tome control inmediatamente
+      return self.clients.claim();
     })
   );
 });
 
 // Interceptar requests
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Si está en cache, devolverlo
-        if (response) {
-          console.log('📱 Sirviendo desde cache:', event.request.url);
-          return response;
-        }
-        
-        // Si no está en cache, hacer fetch
-        return fetch(event.request).then((response) => {
-          // Verificar si es una respuesta válida
-          if (!response || response.status !== 200 || response.type !== 'basic') {
+  // Para archivos HTML, siempre intentar fetch primero para obtener la versión más reciente
+  if (event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Si la respuesta es válida, actualizar cache y devolver
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
+            return response;
+          }
+          // Si falla, intentar desde cache
+          return caches.match(event.request);
+        })
+        .catch(() => {
+          // Si falla completamente, mostrar desde cache
+          return caches.match('./index.html');
+        })
+    );
+  } else {
+    // Para otros recursos, usar estrategia cache-first
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          // Si está en cache, devolverlo
+          if (response) {
+            console.log('📱 Sirviendo desde cache:', event.request.url);
             return response;
           }
           
-          // Clonar la respuesta
-          const responseToCache = response.clone();
-          
-          // Agregar al cache
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-          
-          return response;
-        }).catch(() => {
-          // Si falla el fetch, mostrar página offline
-          if (event.request.destination === 'document') {
-            return caches.match('./index.html');
-          }
-        });
-      })
-  );
+          // Si no está en cache, hacer fetch
+          return fetch(event.request).then((response) => {
+            // Verificar si es una respuesta válida
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+            
+            // Clonar la respuesta
+            const responseToCache = response.clone();
+            
+            // Agregar al cache
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
+            
+            return response;
+          }).catch(() => {
+            // Si falla el fetch, mostrar página offline
+            if (event.request.destination === 'document') {
+              return caches.match('./index.html');
+            }
+          });
+        })
+    );
+  }
 });
 
 // Manejar mensajes del cliente

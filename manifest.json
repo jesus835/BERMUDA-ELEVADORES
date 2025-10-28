@@ -2,6 +2,7 @@
   "name": "Bermuda Elevators - Elevator Management System",
   "short_name": "Bermuda Elevators",
   "description": "Sistema de gestión de elevadores para Bermuda Elevators",
+  "version": "1.0.0",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1e1e1e",
