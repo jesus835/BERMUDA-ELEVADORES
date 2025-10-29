@@ -3252,6 +3252,127 @@
         }
         // Variable para evitar múltiples cargas simultáneas del dashboard
         let isLoadingDashboard = false;
+        // Formatea un timestamp a "DD/MM/YYYY, HH:MM:SS (Bermuda Time)"
+        function formatBermudaTimestamp(input) {
+            try {
+                if (input === undefined || input === null) return '';
+                // Si ya viene en hora local de Bermuda, no convertir de nuevo
+                if (typeof input === 'string' && input.includes('(Bermuda Time)')) {
+                    const raw = input.trim();
+                    const clean = raw.replace('(Bermuda Time)', '').trim();
+                    let datePart = clean;
+                    let timePart = '';
+                    if (clean.includes(',')) {
+                        const pieces = clean.split(',');
+                        datePart = (pieces[0] || '').trim();
+                        timePart = (pieces[1] || '').trim();
+                    } else if (clean.includes(' ')) {
+                        const pieces = clean.split(' ');
+                        datePart = (pieces[0] || '').trim();
+                        timePart = (pieces[1] || '').trim();
+                    }
+                    const d = datePart.split('/').map(v => v.trim());
+                    let dd = d[0] || '';
+                    let mm = d[1] || '';
+                    let yyyy = d[2] || '';
+                    if (dd.length === 1) dd = '0' + dd;
+                    if (mm.length === 1) mm = '0' + mm;
+                    if (timePart) {
+                        // Normalizar HH:MM:SS
+                        const t = timePart.split(':');
+                        let HH = (t[0] || '00').padStart(2, '0');
+                        let MM = (t[1] || '00').padStart(2, '0');
+                        let SS = (t[2] || '00').padStart(2, '0');
+                        return `${dd}/${mm}/${yyyy}, ${HH}:${MM}:${SS} (Bermuda Time)`;
+                    }
+                    return `${dd}/${mm}/${yyyy} (Bermuda Time)`;
+                }
+                let dateObj = null;
+                if (typeof input === 'number' || (typeof input === 'string' && /^\d+$/.test(input.trim()))) {
+                    dateObj = new Date(Number(input));
+                } else if (typeof input === 'string') {
+                    const raw = input.trim();
+                    let clean = raw.replace('(Bermuda Time)', '').trim();
+                    let day, month, year, hour = 0, minute = 0, second = 0;
+                    // Intento 1: "DD/MM/YYYY, HH:MM:SS" o "MM/DD/YYYY, HH:MM:SS"
+                    if (!dateObj && clean.includes(',')) {
+                        const parts = clean.split(',');
+                        const datePart = (parts[0] || '').trim();
+                        const timePart = (parts[1] || '').trim();
+                        const dateBits = datePart.split('/');
+                        const timeBits = timePart.split(':');
+                        const assumeDDMMYYYY = raw.includes('Bermuda Time');
+                        if (dateBits.length === 3) {
+                            if (assumeDDMMYYYY) {
+                                day = parseInt(dateBits[0], 10);
+                                month = parseInt(dateBits[1], 10);
+                                year = parseInt(dateBits[2], 10);
+                            } else {
+                                month = parseInt(dateBits[0], 10);
+                                day = parseInt(dateBits[1], 10);
+                                year = parseInt(dateBits[2], 10);
+                            }
+                        }
+                        if (timeBits.length >= 2) {
+                            hour = parseInt(timeBits[0], 10) || 0;
+                            minute = parseInt(timeBits[1], 10) || 0;
+                            second = parseInt(timeBits[2], 10) || 0;
+                        }
+                        if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+                            dateObj = new Date(year, month - 1, day, hour, minute, second);
+                        }
+                    }
+                    // Intento 2: "DD/MM/YYYY HH:MM:SS" o "MM/DD/YYYY HH:MM:SS"
+                    if (!dateObj && clean.includes(' ')) {
+                        const parts = clean.split(' ');
+                        const datePart = (parts[0] || '').trim();
+                        const timePart = (parts[1] || '').trim();
+                        const dateBits = datePart.split('/');
+                        const timeBits = timePart.split(':');
+                        const assumeDDMMYYYY = raw.includes('Bermuda Time');
+                        if (dateBits.length === 3) {
+                            if (assumeDDMMYYYY) {
+                                day = parseInt(dateBits[0], 10);
+                                month = parseInt(dateBits[1], 10);
+                                year = parseInt(dateBits[2], 10);
+                            } else {
+                                month = parseInt(dateBits[0], 10);
+                                day = parseInt(dateBits[1], 10);
+                                year = parseInt(dateBits[2], 10);
+                            }
+                        }
+                        if (timeBits.length >= 2) {
+                            hour = parseInt(timePart.split(':')[0], 10) || 0;
+                            minute = parseInt(timePart.split(':')[1], 10) || 0;
+                            second = parseInt(timePart.split(':')[2], 10) || 0;
+                        }
+                        if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+                            dateObj = new Date(year, month - 1, day, hour, minute, second);
+                        }
+                    }
+                    // Intento 3: parseo directo
+                    if (!dateObj) {
+                        dateObj = new Date(raw);
+                    }
+                }
+                if (!dateObj || isNaN(dateObj.getTime())) {
+                    return String(input);
+                }
+                const formatted = dateObj.toLocaleString('en-GB', {
+                    timeZone: 'Atlantic/Bermuda',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                return `${formatted} (Bermuda Time)`;
+            } catch (_) {
+                return String(input ?? '');
+            }
+        }
         // Función para cargar datos del dashboard
         async function loadDashboardData(currentUser = null) {
             console.log('=== CARGANDO LOGS DEL DASHBOARD ===');
@@ -3426,7 +3547,7 @@
                         <span class="msg">
                             <strong>${deviceId}</strong><br>
                             <small>${changeText}</small><br>
-                            <small style="opacity: 0.7;">${timestamp}</small>
+                            <small style="opacity: 0.7;">${formatBermudaTimestamp(timestamp)}</small>
                         </span>
                         <div class="progress" style="background: ${statusColor};"></div>
                     `;
@@ -3634,22 +3755,15 @@
             console.log('Datos del reporte:', serviceEntry);
             
             try {
-                // Enviar a ambos correos en paralelo
-                const emailPromises = [
-                    sendEmailViaForm(SERVICE_REPORT_EMAIL, serviceEntry),
-                    sendEmailViaForm(SERVICE_REPORT_EMAIL_CC, serviceEntry)
-                ];
+                // Enviar a un solo correo
+                const emailResult = await sendEmailViaForm(SERVICE_REPORT_EMAIL, serviceEntry);
                 
-                const results = await Promise.all(emailPromises);
-                
-                const allSuccess = results.every(r => r.success);
-                
-                if (allSuccess) {
-                    console.log('✅ Reporte enviado exitosamente a ambos destinatarios');
+                if (emailResult.success) {
+                    console.log('✅ Reporte enviado exitosamente');
                     return { success: true, message: 'Service report sent by email successfully!' };
                 } else {
-                    console.error('⚠️ Algunos emails no se enviaron correctamente');
-                    return { success: false, message: 'Some emails failed to send' };
+                    console.error('❌ Error enviando email');
+                    return { success: false, message: 'Email failed to send' };
                 }
                 
             } catch (error) {
@@ -3667,7 +3781,7 @@
                     // Crear formulario para enviar por email
                     const form = document.createElement('form');
                     form.method = 'POST';
-                    form.action = 'https://script.google.com/macros/s/AKfycbxREWUNSe0R-YiKIe50nMbR1finG9lP0-yqRpn4-KuiOewr0A-4-f2MJrUGcOnNHfWz4w/exec';
+                    form.action = 'https://script.google.com/macros/s/AKfycbwSHv8Ygw7oWLImpCYg1JVaqmS8WZCidCmqwEnI4Knp-rCc-D7qvrZYhQbwoIqx6Qpjdw/exec';
                     form.target = 'hiddenIframe_' + Date.now(); // Iframe único para cada envío
                     form.style.display = 'none';
                     
@@ -3991,7 +4105,6 @@
         
         // Configuración de emails de destino para reportes de servicio
         const SERVICE_REPORT_EMAIL = 'jose@elevator.bm'; // Email principal
-        const SERVICE_REPORT_EMAIL_CC = 'Lopez201150169@gmail.com'; // Email adicional
 
         // Función para obtener datos de la API con cache
         async function getApiDataWithCache() {
@@ -4947,7 +5060,16 @@
                 deviceId: deviceSelect.value,
                 type: serviceType.value,
                 notes: serviceNotes.value,
-                date: new Date().toLocaleString(),
+                date: new Date().toLocaleString('en-GB', {
+                    timeZone: 'Atlantic/Bermuda',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                }) + ' (Bermuda Time)',
                 photos: 0
             };
             
