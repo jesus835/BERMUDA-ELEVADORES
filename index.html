@@ -535,6 +535,191 @@
         }
 
         /* Dashboard Styles */
+        
+        /* Grid específico para Dashboard - 5 columnas */
+        #dashboard-screen .units-grid {
+            display: grid !important;
+            grid-template-columns: repeat(5, 1fr) !important;
+            gap: 12px !important;
+            padding: 0 10px;
+        }
+        
+        /* Dashboard listings como flex para mostrar toasts */
+        #dashboard-listings {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px !important;
+            padding: 0 10px;
+            overflow-y: auto !important;
+            max-height: calc(100vh - 450px) !important;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+        
+        #dashboard-listings::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #dashboard-listings::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        #dashboard-listings::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+        
+        #dashboard-listings::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        @media (max-width: 1400px) {
+            #dashboard-screen .units-grid {
+                grid-template-columns: repeat(4, 1fr) !important;
+            }
+        }
+
+        @media (max-width: 1100px) {
+            #dashboard-screen .units-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #dashboard-screen .units-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #dashboard-screen .units-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        
+        /* Estilos para Toast Notification */
+        .toast {
+            background: white !important;
+            border-radius: 12px !important;
+            padding: 16px 20px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            position: relative !important;
+            overflow: hidden !important;
+            margin-bottom: 12px !important;
+            border: 1px solid #e0e0e0 !important;
+            min-height: 60px !important;
+            z-index: 1000 !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        .toast .icon {
+            width: 24px;
+            height: 24px;
+            background: #27ae60;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .toast .msg {
+            flex: 1;
+            color: #333;
+        }
+        
+        .toast .msg strong {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e1e1e;
+        }
+        
+        .toast .msg small {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .toast .msg .stop {
+            color: #3498db;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .toast .msg .stop:hover {
+            color: #2980b9;
+        }
+        
+        .toast .progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: #27ae60;
+            width: 100%;
+        }
+        
+        /* Tarjetas compactas para Dashboard - Estilo Toast */
+        #dashboard-listings .item-card,
+        #dashboard-screen .item-card {
+            min-height: 60px !important;
+            max-height: 60px !important;
+            width: 100% !important;
+            padding: 12px 16px !important;
+            margin: 0 !important;
+            border-radius: 12px !important;
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            background: #1e1e1e !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            border: 1px solid #2a2a2a !important;
+        }
+        
+        #dashboard-listings .item-card:hover,
+        #dashboard-screen .item-card:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2) !important;
+        }
+        
+        #dashboard-listings .item-title,
+        #dashboard-screen .item-title {
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            text-align: left !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            color: white !important;
+            flex: 1 !important;
+        }
+        
+        #dashboard-listings .item-meta,
+        #dashboard-screen .item-meta {
+            display: flex !important;
+            justify-content: flex-end !important;
+            align-items: center !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            flex-shrink: 0 !important;
+        }
+        
+        #dashboard-listings .status-badge,
+        #dashboard-screen .status-badge {
+            font-size: 10px !important;
+            padding: 4px 10px !important;
+            margin: 0 !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            text-transform: uppercase !important;
+        }
+        
         .hero-section {
             text-align: left;
             margin-bottom: 30px;
@@ -1775,7 +1960,7 @@
                 </div>
 
                 <div class="item-listings" id="dashboard-listings" style="margin-top: 366px; position: fixed; top: 7px; left: 20px; right: 20px; z-index: 40;">
-                    <!-- Activity items will be populated by JavaScript -->
+                    <!-- Las tarjetas se cargan dinámicamente desde la API -->
                 </div>
 
             </div>
@@ -2635,7 +2820,7 @@
         }
 
         // Función para crear tarjeta de elevador desde datos de dispositivo
-        async function createDeviceElevatorCard(device, index) {
+        async function createDeviceElevatorCard(device, index, isDashboard = false) {
             // Validar que el dispositivo no tenga datos corruptos
             if (!device || 
                 !device.deviceId || 
@@ -2648,11 +2833,6 @@
             
             const card = document.createElement('div');
             card.className = `item-card ${index % 2 === 1 ? 'dark' : ''}`;
-            card.style.cssText = `
-                margin-bottom: 18px !important;
-                min-height: 180px !important;
-                padding: 24px !important;
-            `;
             card.onclick = function() { openDeviceElevatorModal(device); };
             
             // Crear nombre del elevador basado en el edificio
@@ -2667,31 +2847,42 @@
             // Agregar atributo data-device-id para identificación
             card.setAttribute('data-device-id', device.deviceId);
             
-            // Crear HTML inicial
-            card.innerHTML = `
-                <div class="item-card-header" style="margin-bottom: 18px !important;">
-                    <div class="item-info">
-                        <div class="item-icon">🏢</div>
-                        <div class="item-details">
-                            <h4>${elevatorName}</h4>
-                            <p>${location}</p>
-                        </div>
+            // Crear HTML diferente según si es Dashboard o Units
+            if (isDashboard) {
+                // Dashboard: Solo ID y estado
+                card.innerHTML = `
+                    <div class="item-title">${device.deviceId}</div>
+                    <div class="item-meta">
+                        <span class="status-badge ${statusClass}">${status}</span>
                     </div>
-                    <button class="bookmark-btn" onclick="toggleBookmark('${device.deviceId}'); event.stopPropagation();">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                    </button>
-                </div>
-                <div class="item-title">${device.deviceId} - ${device.unitElevator}</div>
-                <div class="item-meta" style="margin-bottom: 18px !important;">
-                    <span class="item-location">${location}</span>
-                    <span class="status-badge ${statusClass}">${status}</span>
-                </div>
-                <div class="progress-bar" style="margin-top: 12px !important;">
-                    <div class="progress-fill" style="width: 100%; background-color: ${progressColor};"></div>
-                </div>
-            `;
+                `;
+            } else {
+                // Units: HTML completo con toda la información
+                card.innerHTML = `
+                    <div class="item-card-header">
+                        <div class="item-info">
+                            <div class="item-icon">🏢</div>
+                            <div class="item-details">
+                                <h4>${elevatorName}</h4>
+                                <p>${location}</p>
+                            </div>
+                        </div>
+                        <button class="bookmark-btn" onclick="toggleBookmark('${device.deviceId}'); event.stopPropagation();">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="item-title">${device.deviceId} - ${device.unitElevator}</div>
+                    <div class="item-meta">
+                        <span class="item-location">${location}</span>
+                        <span class="status-badge ${statusClass}">${status}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%; background-color: ${progressColor};"></div>
+                    </div>
+                `;
+            }
             
             // Consultar la API con cache para obtener datos de alarmas en tiempo real
             try {
@@ -2724,9 +2915,15 @@
                     const statusBadge = card.querySelector('.status-badge');
                     const progressFill = card.querySelector('.progress-fill');
                     
-                    statusBadge.textContent = status;
-                    statusBadge.className = `status-badge ${statusClass}`;
-                    progressFill.style.backgroundColor = progressColor;
+                    if (statusBadge) {
+                        statusBadge.textContent = status;
+                        statusBadge.className = `status-badge ${statusClass}`;
+                    }
+                    
+                    // Actualizar progress bar solo si existe (Units)
+                    if (progressFill) {
+                        progressFill.style.backgroundColor = progressColor;
+                    }
                     
                 }
             } catch (error) {
@@ -3071,6 +3268,188 @@
 
         // Función para cargar datos del dashboard
         async function loadDashboardData(currentUser = null) {
+            console.log('=== CARGANDO LOGS DEL DASHBOARD ===');
+            
+            const container = document.getElementById('dashboard-listings');
+            if (!container) {
+                console.log('Contenedor dashboard-listings no encontrado');
+                return;
+            }
+            
+            try {
+                // Cargar datos de logs
+                const logsResponse = await fetch('https://script.google.com/macros/s/AKfycbwmymPhQ89H9I0Mc25PYBYcgLSFANar8FyWbFTF0wCzk8OCbm6IXproy9YFhgKvpOJD_w/exec');
+                const logsData = await logsResponse.json();
+                
+                console.log('Datos de logs:', logsData);
+                
+                if (!logsData.success || !logsData.data || !Array.isArray(logsData.data)) {
+                    throw new Error('Error al cargar logs de la API');
+                }
+                
+                // Obtener la fecha actual (solo día/mes/año)
+                const now = new Date();
+                const todayDay = now.getDate();
+                const todayMonth = now.getMonth() + 1;
+                const todayYear = now.getFullYear();
+                
+                console.log('========================================');
+                console.log('FILTRO DE FECHA - INFORMACIÓN DE DEBUG');
+                console.log('========================================');
+                console.log(`Fecha actual: ${todayMonth}/${todayDay}/${todayYear}`);
+                
+                // Filtrar logs por fecha (solo del día de hoy)
+                let todayLogs = logsData.data.filter(log => {
+                    const timestamp = log.timestamp || '';
+                    
+                    // Extraer la fecha del timestamp
+                    let logDateStr = '';
+                    
+                    if (timestamp.includes(',')) {
+                        logDateStr = timestamp.split(',')[0].trim();
+                    } else if (timestamp.includes(' ')) {
+                        logDateStr = timestamp.split(' ')[0].trim();
+                    }
+                    
+                    // Parsear la fecha dependiendo del formato
+                    let logDay, logMonth, logYear;
+                    
+                    if (timestamp.includes('Bermuda Time')) {
+                        // Formato: DD/MM/YYYY (Bermuda Time)
+                        const parts = logDateStr.split('/');
+                        if (parts.length === 3) {
+                            logDay = parseInt(parts[0]);
+                            logMonth = parseInt(parts[1]);
+                            logYear = parseInt(parts[2]);
+                        }
+                    } else {
+                        // Formato: MM/DD/YYYY (estándar)
+                        const parts = logDateStr.split('/');
+                        if (parts.length === 3) {
+                            logMonth = parseInt(parts[0]);
+                            logDay = parseInt(parts[1]);
+                            logYear = parseInt(parts[2]);
+                        }
+                    }
+                    
+                    // Comparar fecha
+                    const isToday = (logDay === todayDay && logMonth === todayMonth && logYear === todayYear);
+                    
+                    console.log(`Timestamp: "${timestamp}" | Fecha extraída: ${logMonth}/${logDay}/${logYear} | ¿Es hoy?: ${isToday}`);
+                    
+                    return isToday;
+                });
+                
+                console.log('========================================');
+                console.log(`RESULTADO: ${todayLogs.length} logs de hoy de ${logsData.data.length} totales`);
+                console.log('========================================');
+                
+                // Filtrar logs por usuario
+                let userLogs = todayLogs;
+                
+                if (currentUser && currentUser.email) {
+                    console.log('=== FILTRANDO LOGS POR USUARIO ===');
+                    console.log('Email del usuario:', currentUser.email);
+                    console.log('Role del usuario:', currentUser.role);
+                    
+                    if (currentUser.role === 'Admin' || currentUser.role === 'Technician') {
+                        console.log('Usuario Admin/Technician - Mostrando todos los logs de hoy');
+                    } else {
+                        console.log('Usuario Client - Filtrando logs de hoy por email del propietario');
+                        userLogs = todayLogs.filter(log => {
+                            const logEmail = log.owner_email ? String(log.owner_email).toLowerCase() : '';
+                            const userEmail = currentUser.email.toLowerCase();
+                            
+                            // Extraer la parte del correo antes del guión (si existe)
+                            const logEmailBase = logEmail.split('-')[0];
+                            const userEmailBase = userEmail.split('-')[0];
+                            
+                            return logEmailBase === userEmailBase;
+                        });
+                        console.log(`Logs filtrados del usuario: ${userLogs.length} de ${todayLogs.length}`);
+                    }
+                }
+                
+                // Limpiar y crear tarjetas de logs
+                container.innerHTML = '';
+                
+                if (userLogs.length === 0) {
+                    // Crear tarjeta de "sin cambios"
+                    const emptyCard = document.createElement('div');
+                    emptyCard.className = 'toast';
+                    emptyCard.innerHTML = `
+                        <span class="icon" style="background: #3498db;">ℹ️</span>
+                        <span class="msg">
+                            <strong>Sin actividad</strong><br>
+                            <small>No hay cambios registrados hoy</small>
+                        </span>
+                        <div class="progress" style="background: #3498db;"></div>
+                    `;
+                    container.appendChild(emptyCard);
+                    return;
+                }
+                
+                // Invertir el orden: más reciente primero
+                const sortedLogs = [...userLogs].reverse();
+                
+                // Crear una tarjeta por cada log (más reciente arriba)
+                sortedLogs.forEach(log => {
+                    const card = document.createElement('div');
+                    card.className = 'toast';
+                    
+                    const deviceId = log.device_id;
+                    const inputChanged = log.input_changed;
+                    const oldValue = log.old_value;
+                    const newValue = log.new_value;
+                    const timestamp = log.timestamp;
+                    
+                    // Determinar color según el cambio
+                    let statusColor, icon, changeText;
+                    
+                    if (newValue === true || newValue === 'true') {
+                        // Cambió a true = ROJO = ALARMA ACTIVADA
+                        statusColor = '#e74c3c';
+                        icon = '🚨';
+                        changeText = `${inputChanged}: OFF → ON`;
+                    } else if (newValue === false || newValue === 'false') {
+                        // Cambió a false = VERDE = ALARMA DESACTIVADA
+                        statusColor = '#27ae60';
+                        icon = '✔';
+                        changeText = `${inputChanged}: ON → OFF`;
+                    } else {
+                        // Otro tipo de cambio
+                        statusColor = '#3498db';
+                        icon = 'ℹ';
+                        changeText = `${inputChanged}: ${oldValue} → ${newValue}`;
+                    }
+                    
+                    card.innerHTML = `
+                        <span class="icon" style="background: ${statusColor};">${icon}</span>
+                        <span class="msg">
+                            <strong>${deviceId}</strong><br>
+                            <small>${changeText}</small><br>
+                            <small style="opacity: 0.7;">${timestamp}</small>
+                        </span>
+                        <div class="progress" style="background: ${statusColor};"></div>
+                    `;
+                    
+                    card.onclick = function() {
+                        console.log('Log clickeado:', log);
+                    };
+                    
+                    container.appendChild(card);
+                });
+                
+                console.log(`✅ ${userLogs.length} logs mostrados en Dashboard`);
+                
+            } catch (error) {
+                console.error('Error cargando logs del Dashboard:', error);
+                container.innerHTML = '<div style="color: white; padding: 20px;">Error de conexión</div>';
+            }
+            
+            return Promise.resolve();
+            
+            /* CÓDIGO ORIGINAL COMENTADO
             // Evitar múltiples cargas simultáneas
             if (isLoadingDashboard) {
                 console.log('loadDashboardData ya está ejecutándose, omitiendo...');
@@ -3086,6 +3465,7 @@
             
             // Mostrar indicador de carga
             container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6c757d;">Cargando dispositivos...</div>';
+            */
             
             try {
                 console.log('=== CARGANDO DATOS DEL DASHBOARD ===');
@@ -3205,7 +3585,7 @@
                             const device = devicesToShow[i];
                             console.log(`Dashboard - Creando tarjeta dinámica para: ${device.deviceId}`);
                             
-                            const card = await createDeviceElevatorCard(device, i);
+                            const card = await createDeviceElevatorCard(device, i, true); // true = Dashboard
                             if (card) {
                                 container.appendChild(card);
                                 console.log(`Dashboard - Tarjeta dinámica agregada al contenedor para ${device.deviceId}`);
@@ -3426,61 +3806,99 @@
             // Esta función ya no se usa, el contenido se maneja con el formulario
         }
 
-        // Función para enviar reporte de servicio por email
+        // Función para enviar reporte de servicio por email (usando Google Apps Script)
         async function sendServiceReportByEmail(serviceEntry) {
             console.log('=== ENVIANDO REPORTE DE SERVICIO POR EMAIL ===');
             console.log('Datos del reporte:', serviceEntry);
             
             try {
-                // Crear formulario para enviar por email
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = 'https://script.google.com/macros/s/AKfycbwxvG6yNyf9-WbtO0rIEtULcz0-2c9EYG72ZOX7cHoEtvYYsHmV7-ixRvczcdi3zdwQaw/exec';
-                form.target = 'hiddenIframe';
-                form.style.display = 'none';
+                // Enviar a ambos correos en paralelo
+                const emailPromises = [
+                    sendEmailViaForm(SERVICE_REPORT_EMAIL, serviceEntry),
+                    sendEmailViaForm(SERVICE_REPORT_EMAIL_CC, serviceEntry)
+                ];
                 
-                console.log('Email de destino:', SERVICE_REPORT_EMAIL);
+                const results = await Promise.all(emailPromises);
                 
-                // Agregar campos del formulario
-                const fields = {
-                    action: 'send_service_report',
-                    toEmail: SERVICE_REPORT_EMAIL,
-                    deviceId: serviceEntry.deviceId,
-                    deviceName: serviceEntry.device,
-                    serviceType: serviceEntry.type,
-                    serviceNotes: serviceEntry.notes,
-                    serviceDate: serviceEntry.date,
-                    reportId: serviceEntry.id,
-                    companyName: 'BERMUDA ELEVATOR',
-                    supportEmail: 'jose@elevator.bm'
-                };
+                const allSuccess = results.every(r => r.success);
                 
-                Object.keys(fields).forEach(key => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = fields[key];
-                    form.appendChild(input);
-                });
-                
-                // Agregar formulario al DOM y enviarlo
-                document.body.appendChild(form);
-                form.submit();
-                
-                // Limpiar formulario después del envío
-                setTimeout(() => {
-                    if (document.body.contains(form)) {
-                        document.body.removeChild(form);
-                    }
-                }, 1000);
-                
-                console.log('Reporte enviado por email exitosamente');
-                return { success: true, message: 'Service report sent by email successfully!' };
+                if (allSuccess) {
+                    console.log('✅ Reporte enviado exitosamente a ambos destinatarios');
+                    return { success: true, message: 'Service report sent by email successfully!' };
+                } else {
+                    console.error('⚠️ Algunos emails no se enviaron correctamente');
+                    return { success: false, message: 'Some emails failed to send' };
+                }
                 
             } catch (error) {
-                console.error('Error al enviar reporte por email:', error);
+                console.error('❌ Error al enviar reporte por email:', error);
                 return { success: false, message: 'Error sending service report by email' };
             }
+        }
+        
+        // Función auxiliar para enviar email via formulario
+        function sendEmailViaForm(toEmail, serviceEntry) {
+            return new Promise((resolve) => {
+                try {
+                    console.log(`Enviando email a: ${toEmail}`);
+                    
+                    // Crear formulario para enviar por email
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = 'https://script.google.com/macros/s/AKfycbxREWUNSe0R-YiKIe50nMbR1finG9lP0-yqRpn4-KuiOewr0A-4-f2MJrUGcOnNHfWz4w/exec';
+                    form.target = 'hiddenIframe_' + Date.now(); // Iframe único para cada envío
+                    form.style.display = 'none';
+                    
+                    // Agregar campos del formulario
+                    const fields = {
+                        action: 'send_service_report',
+                        toEmail: toEmail,
+                        deviceId: serviceEntry.deviceId,
+                        deviceName: serviceEntry.device,
+                        serviceType: serviceEntry.type,
+                        serviceNotes: serviceEntry.notes,
+                        serviceDate: serviceEntry.date,
+                        reportId: serviceEntry.id,
+                        companyName: 'BERMUDA ELEVATOR',
+                        supportEmail: 'jose@elevator.bm'
+                    };
+                    
+                    Object.keys(fields).forEach(key => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = fields[key];
+                        form.appendChild(input);
+                    });
+                    
+                    // Crear iframe oculto para la respuesta
+                    const iframe = document.createElement('iframe');
+                    iframe.name = form.target;
+                    iframe.style.display = 'none';
+                    document.body.appendChild(iframe);
+                    
+                    // Agregar formulario al DOM y enviarlo
+                    document.body.appendChild(form);
+                    form.submit();
+                    
+                    // Limpiar formulario e iframe después del envío
+                    setTimeout(() => {
+                        if (document.body.contains(form)) {
+                            document.body.removeChild(form);
+                        }
+                        if (document.body.contains(iframe)) {
+                            document.body.removeChild(iframe);
+                        }
+                    }, 2000);
+                    
+                    console.log(`✅ Email enviado a ${toEmail}`);
+                    resolve({ success: true });
+                    
+                } catch (error) {
+                    console.error(`❌ Error enviando a ${toEmail}:`, error);
+                    resolve({ success: false });
+                }
+            });
         }
 
         // Function to load devices in reports select
@@ -3747,11 +4165,12 @@
         
         // Variables para actualización automática
         let autoUpdateInterval = null;
-        const AUTO_UPDATE_DELAY = 15000; // 15 segundos antes de comenzar
-        const AUTO_UPDATE_INTERVAL = 10000; // 10 segundos entre actualizaciones
+        const AUTO_UPDATE_DELAY = 5000; // 5 segundos antes de comenzar
+        const AUTO_UPDATE_INTERVAL = 5000; // 5 segundos entre actualizaciones
         
-        // Configuración de email de destino para reportes de servicio
-        const SERVICE_REPORT_EMAIL = 'jose@elevator.bm'; // Cambia aquí el email de destino
+        // Configuración de emails de destino para reportes de servicio
+        const SERVICE_REPORT_EMAIL = 'jose@elevator.bm'; // Email principal
+        const SERVICE_REPORT_EMAIL_CC = 'Lopez201150169@gmail.com'; // Email adicional
 
         // Función para obtener datos de la API con cache
         async function getApiDataWithCache() {
@@ -4051,17 +4470,31 @@
                 clearInterval(autoUpdateInterval);
             }
             
-            // Esperar 15 segundos antes de comenzar
+            // Esperar 5 segundos antes de comenzar
             setTimeout(() => {
-                console.log('=== COMENZANDO ACTUALIZACIÓN AUTOMÁTICA CADA 10 SEGUNDOS ===');
+                console.log('=== COMENZANDO ACTUALIZACIÓN AUTOMÁTICA CADA 5 SEGUNDOS ===');
                 
                 // Actualizar inmediatamente
                 updateExistingCards();
                 
-                // Configurar intervalo cada 10 segundos
+                // También actualizar el Dashboard si está visible
+                const dashboardScreen = document.getElementById('dashboard-screen');
+                if (dashboardScreen && dashboardScreen.style.display !== 'none') {
+                    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                    loadDashboardData(currentUser);
+                }
+                
+                // Configurar intervalo cada 5 segundos
                 autoUpdateInterval = setInterval(() => {
                     console.log('=== ACTUALIZACIÓN AUTOMÁTICA PROGRAMADA ===');
                     updateExistingCards();
+                    
+                    // También actualizar el Dashboard si está visible
+                    const dashboardScreen = document.getElementById('dashboard-screen');
+                    if (dashboardScreen && dashboardScreen.style.display !== 'none') {
+                        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                        loadDashboardData(currentUser);
+                    }
                 }, AUTO_UPDATE_INTERVAL);
                 
             }, AUTO_UPDATE_DELAY);
