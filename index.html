@@ -3590,6 +3590,8 @@
         }
         // Variable para evitar múltiples cargas simultáneas
         let isLoadingUnits = false;
+        // Variable global para mantener el filtro activo en el dashboard
+        let currentStatusFilter = 'all';
         // Función para cargar datos de unidades
         async function loadUnitsData(elevatorsToShow = null, currentUser = null) {
             // Evitar múltiples cargas simultáneas
@@ -4443,7 +4445,7 @@
                 const dashboardScreen = document.getElementById('dashboard-screen');
                 if (dashboardScreen && dashboardScreen.classList.contains('active')) {
                     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-                    loadDashboardData(currentUser);
+                    loadDashboardData(currentUser, currentStatusFilter);
                 }
                 
                 // Configurar intervalo cada 15 segundos
@@ -4455,7 +4457,7 @@
                     const dashboardScreen = document.getElementById('dashboard-screen');
                     if (dashboardScreen && dashboardScreen.classList.contains('active')) {
                         const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-                        loadDashboardData(currentUser);
+                        loadDashboardData(currentUser, currentStatusFilter);
                     }
                 }, AUTO_UPDATE_INTERVAL);
                 
@@ -6083,6 +6085,9 @@
                 
                 console.log('Filtros aplicados:', { status: selectedStatus, building: selectedBuilding });
                 
+                // Guardar el filtro activo en la variable global
+                currentStatusFilter = selectedStatus;
+                
                 // Obtener el término de búsqueda actual
                 const currentSearchTerm = document.getElementById('search-input').value.toLowerCase();
                 
@@ -6100,6 +6105,9 @@
             document.getElementById('clear-filters').addEventListener('click', function() {
                 document.querySelector('input[name="status"][value="all"]').checked = true;
                 document.getElementById('buildingFilter').value = 'all';
+                
+                // Resetear el filtro activo en la variable global
+                currentStatusFilter = 'all';
                 
                 // Mostrar todos los dispositivos y logs sin filtros
                 const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
