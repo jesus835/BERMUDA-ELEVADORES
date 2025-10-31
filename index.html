@@ -1833,7 +1833,7 @@
                     <span>Settings</span>
                 </div>
                 
-                <div class="profile-menu-item" onclick="showNotifications()">
+                <div class="profile-menu-item" onclick="showNotifications()" style="display: none;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                         <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
@@ -1912,7 +1912,7 @@
                             <line x1="17" y1="16" x2="23" y2="16"></line>
                         </svg>
                     </button>
-                    <button class="icon-btn" onclick="hardReload()" title="Limpiar cache y recargar">
+                    <button class="icon-btn" onclick="hardReload()" title="Limpiar cache y recargar" style="display: none;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
                             <path d="M21 3v5h-5"></path>
@@ -1973,7 +1973,7 @@
                 </div>
                 <div class="header-center">Elevator Units</div>
                 <div class="header-right">
-                    <button class="icon-btn">
+                    <button class="icon-btn" style="display: none;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
@@ -2007,7 +2007,7 @@
                 </div>
                 <div class="header-center">Service & Maintenance</div>
                 <div class="header-right">
-                    <button class="icon-btn">
+                    <button class="icon-btn" style="display: none;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
@@ -2042,7 +2042,7 @@
                           <option value="testing">System Testing</option>
                           <option value="software">Software Update</option>
                           <option value="upgrade">System Upgrade</option>
-                          <option value="preventive">Preventive Maintenance</option>
+                          <option value="preventive">Pre-inspection</option>
                           <option value="diagnostic">Diagnostic Check</option>
                         </select>
                       </div>
@@ -2078,7 +2078,7 @@
                 </div>
                 <div class="header-center">Reports & Analytics</div>
                 <div class="header-right">
-                    <button class="icon-btn">
+                    <button class="icon-btn" style="display: none;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
@@ -2147,7 +2147,7 @@
                 </div>
                 <div class="header-center">Connected Devices</div>
                 <div class="header-right">
-                    <button class="icon-btn">
+                    <button class="icon-btn" style="display: none;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
@@ -2205,7 +2205,7 @@
                 </div>
                 <div class="header-center">User Management</div>
                 <div class="header-right">
-                    <button class="icon-btn">
+                    <button class="icon-btn" style="display: none;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
@@ -2384,7 +2384,7 @@
                         </label>
                     </div>
                 </div>
-                <div style="margin-bottom: 20px;">
+                <div style="margin-bottom: 20px; display: none;">
                     <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #2c3e50;">Building:</label>
                     <select id="buildingFilter" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
                         <option value="all">All Buildings</option>
@@ -3374,8 +3374,9 @@
             }
         }
         // Función para cargar datos del dashboard
-        async function loadDashboardData(currentUser = null) {
+        async function loadDashboardData(currentUser = null, statusFilter = 'all') {
             console.log('=== CARGANDO LOGS DEL DASHBOARD ===');
+            console.log('Filtro de estado aplicado:', statusFilter);
             
             const container = document.getElementById('dashboard-listings');
             if (!container) {
@@ -3476,6 +3477,25 @@
                         console.log(`Logs filtrados del usuario: ${userLogs.length} de ${todayLogs.length}`);
                     }
                 }
+                
+                // Aplicar filtro de estado (operational = logs verdes/resueltos, out-of-service = logs rojos/alarma)
+                if (statusFilter === 'operational') {
+                    console.log('=== FILTRANDO LOGS: Solo Resueltos (Verde) ===');
+                    userLogs = userLogs.filter(log => {
+                        const newValue = log.new_value;
+                        return (newValue === false || newValue === 'false');
+                    });
+                } else if (statusFilter === 'out-of-service') {
+                    console.log('=== FILTRANDO LOGS: Solo Alarmas (Rojo) ===');
+                    userLogs = userLogs.filter(log => {
+                        const newValue = log.new_value;
+                        const inputChanged = log.input_changed;
+                        // Solo mostrar alarmas (newValue = true) y excluir AT_FLOOR y MOVING
+                        return (newValue === true || newValue === 'true') && inputChanged !== 'AT_FLOOR' && inputChanged !== 'MOVING';
+                    });
+                }
+                
+                console.log(`Logs después del filtro de estado "${statusFilter}": ${userLogs.length}`);
                 
                 // Limpiar y crear tarjetas de logs
                 container.innerHTML = '';
@@ -6069,6 +6089,10 @@
                 // Aplicar filtros a la búsqueda actual (sin navegar a Units)
                 applySearchWithFilters(currentSearchTerm, false);
                 
+                // Aplicar filtros también al dashboard de logs
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                loadDashboardData(currentUser, selectedStatus);
+                
                 document.getElementById('filter-modal').style.display = 'none';
             });
             
@@ -6077,9 +6101,10 @@
                 document.querySelector('input[name="status"][value="all"]').checked = true;
                 document.getElementById('buildingFilter').value = 'all';
                 
-                // Mostrar todos los dispositivos
+                // Mostrar todos los dispositivos y logs sin filtros
                 const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                 loadUnitsData(null, currentUser);
+                loadDashboardData(currentUser, 'all');
             });
 
             // Service form functionality
@@ -7642,7 +7667,7 @@
                 { value: 'testing', text: 'System Testing' },
                 { value: 'software', text: 'Software Update' },
                 { value: 'upgrade', text: 'System Upgrade' },
-                { value: 'preventive', text: 'Preventive Maintenance' },
+                { value: 'preventive', text: 'Pre-inspection' },
                 { value: 'diagnostic', text: 'Diagnostic Check' }
             ];
             
