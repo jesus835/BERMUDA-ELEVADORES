@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bermuda Elevator - Elevator Management System</title>
+    <title>Elevator Management System</title>
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0b3d91">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Bermuda Elevator">
+    <meta name="apple-mobile-web-app-title" content="Elevator System">
     
     <!-- PWA Icons -->
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -1761,7 +1761,7 @@
     <div id="login-screen" class="login-screen">
         <div class="login-container">
             <div class="login-logo">
-                <h1>Bermuda Elevator</h1>
+                <h1></h1>
             </div>
             
             <div class="login-form">
@@ -1786,9 +1786,28 @@
     </div>
 
     <!-- Loading Screen -->
+    <script>
+        // Load cached company data immediately for loading screen (before DOM loads)
+        (function() {
+            try {
+                const cachedCompanyName = localStorage.getItem('dispositivos_companyName');
+                const cachedCompanyLogo = localStorage.getItem('dispositivos_companyLogo');
+                if (cachedCompanyName) {
+                    // Store in a global variable that will be used when DOM loads
+                    window._cachedCompanyName = cachedCompanyName;
+                }
+                if (cachedCompanyLogo) {
+                    // Store logo URL for immediate display
+                    window._cachedCompanyLogo = cachedCompanyLogo;
+                }
+            } catch(e) {
+                console.error('Error loading cached company data:', e);
+            }
+        })();
+    </script>
     <div id="loading-screen" class="loading-screen" style="display: none;">
-        <div class="loading-logo">
-            Bermuda<span class="highlight"> Elevator</span>
+        <div class="loading-logo" id="loadingLogoText">
+            <span class="highlight"></span>
         </div>
         <div class="loading-dots">
             <div class="loading-dot"></div>
@@ -1895,7 +1914,7 @@
                 </div>
                 <div class="header-center">
                     <div class="logo-container">
-                        <img src="https://i.imgur.com/A6T3whG.png" alt="Bermuda Elevator" class="header-logo">
+                        <img src="" alt="" class="header-logo" id="headerLogoImg">
                     </div>
                 </div>
                 <div class="header-right">
@@ -2047,8 +2066,12 @@
                         </select>
                       </div>
                       <div class="form-group">
-                        <label>Notes/Description *</label>
-                        <textarea id="serviceNotes" placeholder="Describe the work performed..." style="width:100%;min-height:80px;padding:8px;font-size:0.9rem;border:1px solid #ccc;border-radius:8px;resize:vertical;box-sizing:border-box;"></textarea>
+                        <label>Attach Image (optional)</label>
+                        <input type="file" id="serviceImage" accept="image/*" style="width:100%;padding:8px;font-size:0.9rem;border:1px solid #ccc;border-radius:8px;box-sizing:border-box;">
+                        <div id="imagePreview" style="margin-top:10px;display:none;">
+                          <img id="previewImg" src="" alt="Preview" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #ccc;">
+                          <button type="button" id="removeImageBtn" style="margin-top:5px;padding:5px 10px;background:#ef5350;color:white;border:none;border-radius:4px;cursor:pointer;font-size:0.85rem;">Remove Image</button>
+                        </div>
                       </div>
                       <button id="addServiceBtn" style="width:100%;padding:10px;font-size:0.95rem;margin-top:10px;">Add Service Entry</button>
                       <p id="serviceMsg" style="margin:8px 0;"></p>
@@ -2743,6 +2766,406 @@
         // ========================================
         const SECURE_API_URL = 'https://script.google.com/macros/s/AKfycbwE-J2SEyLmNseC9nOQ1Rj0OBQH5Q3nsqFI9qh5UT6HnZ7ebvF99wDbPhXRYHWlc2Yicg/exec';
         
+        // API URL for custom field names per device
+        const CUSTOM_FIELD_NAMES_API_URL = 'https://script.google.com/macros/s/AKfycbwQYF49zMznr7SuhHF_MLOBz7d560yOOeY2cLUzdUEslqb8TlaA7FwZCcwrROliA8AU/exec';
+        
+        // API URL for company data
+        const COMPANY_DATA_API_URL = 'https://script.google.com/macros/s/AKfycby9MwtOg-RkLCTIMG5cdR3bbKxQz3qm0tsTpoNbFwwKkSZiBjN7LxQGVhNg_qJyT8zm/exec';
+        
+        // Global variable to store company name
+        let globalCompanyName = '';
+        // Global variable to store admin email
+        let globalAdminEmail = '';
+        // Global variable to store timezone
+        let globalTimezone = 'Atlantic/Bermuda';
+        // Global variable to store signature URL
+        let globalSignatureUrl = '';
+        // Global variable to store logo URL
+        let globalLogoUrl = '';
+        
+        // Function to convert timezone string to IANA timezone format - versión universal
+        // Examples: "GMT-4" -> "Atlantic/Bermuda", "UTC-5" -> "America/New_York", "UTC -4" -> "Atlantic/Bermuda"
+        function getIANATimezone(tzInput) {
+            if (!tzInput) return 'Atlantic/Bermuda';
+
+            let tz = tzInput.toString().trim();
+
+            // Si ya es un timezone IANA válido, retornarlo tal cual
+            if (tz.includes('/')) return tz;
+
+            // Normalizar entrada
+            tz = tz.toUpperCase().replace(/\s+/g, '');
+
+            // Mapeo básico de offsets comunes
+            const offsetMap = {
+                'GMT-4': 'Atlantic/Bermuda',
+                'UTC-4': 'Atlantic/Bermuda',
+                'GMT-5': 'America/New_York',
+                'UTC-5': 'America/New_York',
+                'GMT-6': 'America/Chicago',
+                'UTC-6': 'America/Chicago',
+                'GMT-7': 'America/Denver',
+                'UTC-7': 'America/Denver',
+                'GMT-8': 'America/Los_Angeles',
+                'UTC-8': 'America/Los_Angeles',
+                'GMT+0': 'Europe/London',
+                'UTC+0': 'Europe/London',
+                'GMT+1': 'Europe/Paris',
+                'UTC+1': 'Europe/Paris',
+                'GMT+9': 'Asia/Tokyo',
+                'UTC+9': 'Asia/Tokyo'
+            };
+
+            // Buscar coincidencia exacta
+            if (offsetMap[tz]) {
+                return offsetMap[tz];
+            }
+
+            // Intentar convertir GMT/UTC con offset
+            const match = tz.match(/^(GMT|UTC)([+-])(\d{1,2})$/);
+            if (match) {
+                const sign = match[2] === '+' ? 1 : -1;
+                const rawOffset = parseInt(match[3]) * sign;
+
+                // Mapeo extendido basado en offset
+                const offsetToIANA = {
+                    '-12': 'Pacific/Midway',
+                    '-11': 'Pacific/Samoa',
+                    '-10': 'Pacific/Honolulu',
+                    '-9': 'America/Anchorage',
+                    '-8': 'America/Los_Angeles',
+                    '-7': 'America/Denver',
+                    '-6': 'America/Chicago',
+                    '-5': 'America/New_York',
+                    '-4': 'Atlantic/Bermuda',
+                    '-3': 'America/Argentina/Buenos_Aires',
+                    '-2': 'Atlantic/South_Georgia',
+                    '-1': 'Atlantic/Azores',
+                    '0': 'Europe/London',
+                    '1': 'Europe/Paris',
+                    '2': 'Europe/Berlin',
+                    '3': 'Europe/Moscow',
+                    '4': 'Asia/Dubai',
+                    '5': 'Asia/Karachi',
+                    '6': 'Asia/Dhaka',
+                    '7': 'Asia/Bangkok',
+                    '8': 'Asia/Shanghai',
+                    '9': 'Asia/Tokyo',
+                    '10': 'Australia/Sydney',
+                    '11': 'Pacific/Guadalcanal',
+                    '12': 'Pacific/Auckland'
+                };
+
+                const offsetKey = rawOffset.toString();
+                if (offsetToIANA[offsetKey]) {
+                    return offsetToIANA[offsetKey];
+                }
+            }
+
+            // Si no se encuentra, usar Bermuda por defecto
+            console.warn(`⚠️ Timezone "${tzInput}" no reconocido, usando Atlantic/Bermuda`);
+            return 'Atlantic/Bermuda';
+        }
+        
+        // Function to update loading screen logo text
+        function updateLoadingLogoText(companyName) {
+            if (!companyName) return;
+            
+            const loadingLogo = document.getElementById('loadingLogoText');
+            if (loadingLogo) {
+                // Split company name - take first word before space as main, rest as highlight
+                const nameParts = companyName.split(' ');
+                if (nameParts.length > 1) {
+                    const mainName = nameParts[0];
+                    const highlightName = nameParts.slice(1).join(' ');
+                    loadingLogo.innerHTML = `${mainName}<span class="highlight"> ${highlightName}</span>`;
+                } else {
+                    loadingLogo.innerHTML = `${companyName}<span class="highlight"></span>`;
+                }
+            }
+        }
+
+        // Function to update header logo image
+        function updateHeaderLogo(logoUrl, companyName) {
+            const headerLogoImg = document.getElementById('headerLogoImg');
+            if (headerLogoImg) {
+                if (logoUrl) {
+                    headerLogoImg.setAttribute('src', logoUrl);
+                }
+                if (companyName) {
+                    headerLogoImg.setAttribute('alt', companyName);
+                }
+            }
+        }
+
+        // Function to load and update company name in logo
+        async function loadCompanyName() {
+            try {
+                // Load from cache first to show immediately
+                const cachedCompanyName = localStorage.getItem('dispositivos_companyName');
+                if (cachedCompanyName) {
+                    updateLoadingLogoText(cachedCompanyName);
+                }
+                
+                // Load timezone from cache immediately
+                const cachedTimezone = localStorage.getItem('dispositivos_timezone');
+                if (cachedTimezone) {
+                    globalTimezone = cachedTimezone;
+                }
+                
+                // Fetch fresh data from API
+                const response = await fetch(COMPANY_DATA_API_URL);
+                const data = await response.json();
+                
+                if (data && data.success && data.data && Array.isArray(data.data) && data.data.length > 0) {
+                    const companyData = data.data[0];
+                    globalCompanyName = companyData.companyName || '';
+                    globalAdminEmail = companyData.adminEmail || '';
+                    globalTimezone = companyData.timezone || 'Atlantic/Bermuda';
+                    
+                    // Clean signature URL (remove [img] tags)
+                    const rawSignatureUrl = companyData.signatureUrl || '';
+                    globalSignatureUrl = rawSignatureUrl.replace(/\[img\]/g, '').replace(/\[\/img\]/g, '').trim();
+                    
+                    // Clean logo URL (remove [img] tags)
+                    const rawLogoUrl = companyData.logo || '';
+                    globalLogoUrl = rawLogoUrl.replace(/\[img\]/g, '').replace(/\[\/img\]/g, '').trim();
+                    const companyLogo = globalLogoUrl;
+                    
+                    // Save company name, logo, and timezone to cache
+                    if (globalCompanyName) {
+                        localStorage.setItem('dispositivos_companyName', globalCompanyName);
+                    }
+                    if (globalLogoUrl) {
+                        localStorage.setItem('dispositivos_companyLogo', globalLogoUrl);
+                    }
+                    if (globalTimezone) {
+                        localStorage.setItem('dispositivos_timezone', globalTimezone);
+                    }
+                    
+                    // Update UI with fresh data
+                    if (globalCompanyName) {
+                        // Update loading screen logo with fresh data
+                        updateLoadingLogoText(globalCompanyName);
+                        
+                        // Update login screen logo
+                        const loginLogo = document.querySelector('.login-logo h1');
+                        if (loginLogo) {
+                            loginLogo.textContent = globalCompanyName;
+                        }
+                        
+                        // Update page title
+                        document.title = `${globalCompanyName} - Elevator Management System`;
+                        
+                        // Update meta tag
+                        const metaTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+                        if (metaTitle) {
+                            metaTitle.setAttribute('content', globalCompanyName);
+                        }
+                    }
+                    
+                    // Update header logo image and alt text
+                    updateHeaderLogo(globalLogoUrl, globalCompanyName);
+                    
+                    // Update device company name display
+                    if (globalCompanyName) {
+                        const deviceCompanyNameSpan = document.getElementById('deviceCompanyName');
+                        if (deviceCompanyNameSpan) {
+                            deviceCompanyNameSpan.textContent = globalCompanyName;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading company name:', error);
+            }
+        }
+        
+        // Cache for custom field names
+        let customFieldNamesCache = null;
+        
+        // Función síncrona para cargar cache inmediatamente (sin esperar API)
+        function loadCustomFieldNamesFromCache() {
+            if (customFieldNamesCache) {
+                return customFieldNamesCache;
+            }
+            
+            try {
+                const cachedData = localStorage.getItem('custom_field_names_cache');
+                if (cachedData) {
+                    const parsedCache = JSON.parse(cachedData);
+                    if (parsedCache && Object.keys(parsedCache).length > 0) {
+                        customFieldNamesCache = parsedCache;
+                        return parsedCache;
+                    }
+                }
+            } catch (cacheError) {
+                console.error('Error parsing cached custom field names:', cacheError);
+                localStorage.removeItem('custom_field_names_cache');
+                localStorage.removeItem('custom_field_names_cache_timestamp');
+            }
+            
+            return null;
+        }
+        
+        // Function to load custom field names from API with cache fallback
+        async function loadCustomFieldNames(useCache = true) {
+            if (!CUSTOM_FIELD_NAMES_API_URL) {
+                return {}; // Return empty object if no API URL configured
+            }
+            
+            // Si ya está en memoria, actualizar en segundo plano y devolver
+            if (customFieldNamesCache) {
+                updateCustomFieldNamesInBackground();
+                return customFieldNamesCache;
+            }
+            
+            // Intentar cargar del cache (localStorage) primero para respuesta rápida
+            if (useCache) {
+                const cached = loadCustomFieldNamesFromCache();
+                if (cached) {
+                    // Actualizar en segundo plano sin esperar
+                    updateCustomFieldNamesInBackground();
+                    return cached;
+                }
+            }
+            
+            // Si no hay cache, cargar desde API
+            return await fetchCustomFieldNamesFromAPI();
+        }
+        
+        // Variables globales para recargar notificaciones después de actualizar cache
+        let lastDashboardUser = null;
+        let lastDashboardFilter = 'all';
+        let currentModalDevice = null;
+        
+        // Función para actualizar nombres personalizados en segundo plano
+        async function updateCustomFieldNamesInBackground() {
+            try {
+                const response = await fetch(CUSTOM_FIELD_NAMES_API_URL);
+                const data = await response.json();
+                
+                const customNames = {};
+                
+                if (data && data.success && data.data && Array.isArray(data.data) && data.data.length > 0) {
+                    // Hay datos en la API
+                    data.data.forEach(item => {
+                        const deviceId = item.id || item.device_id;
+                        if (!deviceId) return;
+                        
+                        if (!customNames[deviceId]) {
+                            customNames[deviceId] = {};
+                        }
+                        
+                        Object.keys(item).forEach(key => {
+                            if (key !== 'id' && key !== 'device_id') {
+                                const upperKey = key.toUpperCase();
+                                customNames[deviceId][upperKey] = item[key];
+                                customNames[deviceId][key] = item[key];
+                            }
+                        });
+                    });
+                }
+                // Si no hay datos, customNames queda vacío (se limpia el cache)
+                
+                // Comparar y actualizar si hay cambios
+                const cacheString = JSON.stringify(customNames);
+                const currentCacheString = JSON.stringify(customFieldNamesCache || {});
+                
+                if (cacheString !== currentCacheString) {
+                    customFieldNamesCache = customNames;
+                    localStorage.setItem('custom_field_names_cache', cacheString);
+                    localStorage.setItem('custom_field_names_cache_timestamp', Date.now().toString());
+                    
+                    // Recargar notificaciones con los nuevos nombres si hay dashboard activo
+                    const container = document.getElementById('dashboard-listings');
+                    if (container && container.innerHTML.trim() !== '') {
+                        loadDashboardData(lastDashboardUser, lastDashboardFilter).catch(err => 
+                            console.error('Error reloading dashboard after cache update:', err)
+                        );
+                    }
+                    
+                    // Recargar modal si está abierto
+                    const modal = document.getElementById('elevator-modal');
+                    if (modal && modal.style.display === 'flex' && currentModalDevice) {
+                        openDeviceElevatorModal(currentModalDevice).catch(err => 
+                            console.error('Error reloading modal after cache update:', err)
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating custom field names in background:', error);
+            }
+        }
+        
+        // Función para cargar nombres personalizados desde API
+        async function fetchCustomFieldNamesFromAPI() {
+            try {
+                const response = await fetch(CUSTOM_FIELD_NAMES_API_URL);
+                const data = await response.json();
+                
+                const customNames = {};
+                
+                if (data && data.success && data.data && Array.isArray(data.data) && data.data.length > 0) {
+                    // Hay datos en la API
+                    data.data.forEach(item => {
+                        const deviceId = item.id || item.device_id;
+                        if (!deviceId) return;
+                        
+                        if (!customNames[deviceId]) {
+                            customNames[deviceId] = {};
+                        }
+                        
+                        // Map all field names (convert to uppercase for matching)
+                        // Handle both snake_case and UPPER_CASE field names
+                        Object.keys(item).forEach(key => {
+                            if (key !== 'id' && key !== 'device_id') {
+                                // Store both lowercase and uppercase versions for flexible matching
+                                const upperKey = key.toUpperCase();
+                                customNames[deviceId][upperKey] = item[key];
+                                customNames[deviceId][key] = item[key]; // Also store original case
+                            }
+                        });
+                    });
+                }
+                // Si no hay datos, customNames queda vacío (se limpia el cache)
+                
+                customFieldNamesCache = customNames;
+                
+                // Guardar en cache (vacío si no hay datos)
+                localStorage.setItem('custom_field_names_cache', JSON.stringify(customNames));
+                localStorage.setItem('custom_field_names_cache_timestamp', Date.now().toString());
+                
+                return customNames;
+            } catch (error) {
+                console.error('Error loading custom field names:', error);
+            }
+            
+            return {};
+        }
+        
+        // Function to get display name for a field (custom or default)
+        function getFieldDisplayName(deviceId, fieldName, defaultName) {
+            if (!customFieldNamesCache || !customFieldNamesCache[deviceId]) {
+                return defaultName;
+            }
+            
+            // Try exact match first (uppercase)
+            const upperFieldName = fieldName.toUpperCase();
+            let customName = customFieldNamesCache[deviceId][upperFieldName];
+            
+            // If not found, try original case
+            if (!customName) {
+                customName = customFieldNamesCache[deviceId][fieldName];
+            }
+            
+            // If still not found, try lowercase
+            if (!customName) {
+                customName = customFieldNamesCache[deviceId][fieldName.toLowerCase()];
+            }
+            
+            return customName || defaultName;
+        }
+        
         // Función para obtener/generar Device ID
         function getDeviceId() {
             let deviceId = localStorage.getItem('_0xDID');
@@ -2930,6 +3353,9 @@
         }
         // Función para abrir modal de elevador desde datos de dispositivo
         async function openDeviceElevatorModal(device) {
+            // Load custom field names before opening modal
+            await loadCustomFieldNames();
+            
             const modal = document.getElementById('elevator-modal');
             const title = document.getElementById('elevator-title');
             const timestamp = document.getElementById('elevator-timestamp');
@@ -2937,8 +3363,12 @@
             
             const elevatorName = device.buildingName || `Building ${device.deviceId}`;
             
-            // Actualizar título
+            // Actualizar título y guardar deviceId para recargar después
             title.textContent = elevatorName;
+            title.setAttribute('data-device-id', device.deviceId);
+            
+            // Guardar dispositivo actual para recargar después de actualizar cache
+            currentModalDevice = device;
             
             // Iniciar timestamp dinámico
             startDynamicTimestamp();
@@ -2985,69 +3415,85 @@
                         }
                         
                         // Actualizar estados con datos reales
+                        const deviceId = device.deviceId;
+                        
                         if (isOffline) {
-                            // Mostrar todos los estados como OFFLINE
+                            // Mostrar todos los estados como OFFLINE con nombres personalizados
+                            const outOfServiceName = getFieldDisplayName(deviceId, 'OUT_OF_SERVICE', 'Out of Service');
+                            const fireServiceName = getFieldDisplayName(deviceId, 'FIRE_SERVICE', 'Fire Service');
+                            const phoneCommName = getFieldDisplayName(deviceId, 'PHONE_COMM', 'Phone Comm');
+                            const pitFloodedName = getFieldDisplayName(deviceId, 'PIT_FLOODED', 'Pit Flooded');
+                            const atFloorName = getFieldDisplayName(deviceId, 'AT_FLOOR', 'Elevator at DZ');
+                            const movingName = getFieldDisplayName(deviceId, 'MOVING', 'Elevator Moving');
+                            
                             statusesContainer.innerHTML = `
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                    <span>🚫 Out of Service</span>
+                                    <span>🚫 ${outOfServiceName}</span>
                                     <span class="offline" style="color: #95a5a6; font-weight: 600;">📡 OFFLINE</span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                    <span>🔥 Fire Service</span>
+                                    <span>🔥 ${fireServiceName}</span>
                                     <span class="offline" style="color: #95a5a6; font-weight: 600;">📡 OFFLINE</span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                    <span>📞 Phone Comm</span>
+                                    <span>📞 ${phoneCommName}</span>
                                     <span class="offline" style="color: #95a5a6; font-weight: 600;">📡 OFFLINE</span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                    <span>💧 Pit Flooded</span>
+                                    <span>💧 ${pitFloodedName}</span>
                                     <span class="offline" style="color: #95a5a6; font-weight: 600;">📡 OFFLINE</span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                    <span>🏢 Elevator at DZ</span>
+                                    <span>🏢 ${atFloorName}</span>
                                     <span class="offline" style="color: #95a5a6; font-weight: 600;">📡 OFFLINE</span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                    <span>🚀 Elevator Moving</span>
+                                    <span>🚀 ${movingName}</span>
                                     <span class="offline" style="color: #95a5a6; font-weight: 600;">📡 OFFLINE</span>
                                 </div>
                             `;
                         } else {
-                            // Mostrar estados normales con alarmas si las hay
+                            // Mostrar estados normales con alarmas si las hay - usando nombres personalizados
+                            const outOfServiceName = getFieldDisplayName(deviceId, 'OUT_OF_SERVICE', 'Out of Service');
+                            const fireServiceName = getFieldDisplayName(deviceId, 'FIRE_SERVICE', 'Fire Service');
+                            const phoneCommName = getFieldDisplayName(deviceId, 'PHONE_COMM', 'Phone Comm');
+                            const pitFloodedName = getFieldDisplayName(deviceId, 'PIT_FLOODED', 'Pit Flooded');
+                            const atFloorName = getFieldDisplayName(deviceId, 'AT_FLOOR', 'Elevator at DZ');
+                            const movingName = getFieldDisplayName(deviceId, 'MOVING', 'Elevator Moving');
+                            
                             statusesContainer.innerHTML = `
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.OUT_OF_SERVICE ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
-                                    <span>🚫 Out of Service</span>
+                                    <span>🚫 ${outOfServiceName}</span>
                                     <span class="${deviceData.OUT_OF_SERVICE ? 'true' : 'false'}" style="color: ${deviceData.OUT_OF_SERVICE ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
                                         ${deviceData.OUT_OF_SERVICE ? '🚨 ALARM' : '✅ NORMAL'}
                                     </span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.FIRE_SERVICE ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
-                                    <span>🔥 Fire Service</span>
+                                    <span>🔥 ${fireServiceName}</span>
                                     <span class="${deviceData.FIRE_SERVICE ? 'true' : 'false'}" style="color: ${deviceData.FIRE_SERVICE ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
                                         ${deviceData.FIRE_SERVICE ? '🚨 ALARM' : '✅ NORMAL'}
                                     </span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.PHONE_COMM ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
-                                    <span>📞 Phone Comm</span>
+                                    <span>📞 ${phoneCommName}</span>
                                     <span class="${deviceData.PHONE_COMM ? 'true' : 'false'}" style="color: ${deviceData.PHONE_COMM ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
                                         ${deviceData.PHONE_COMM ? '🚨 ALARM' : '✅ NORMAL'}
                                     </span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.PIT_FLOODED ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
-                                    <span>💧 Pit Flooded</span>
+                                    <span>💧 ${pitFloodedName}</span>
                                     <span class="${deviceData.PIT_FLOODED ? 'true' : 'false'}" style="color: ${deviceData.PIT_FLOODED ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
                                         ${deviceData.PIT_FLOODED ? '🚨 ALARM' : '✅ NORMAL'}
                                     </span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                    <span>🏢 Elevator at DZ</span>
+                                    <span>🏢 ${atFloorName}</span>
                                     <span class="${deviceData.AT_FLOOR ? 'true' : 'false'}" style="color: ${deviceData.AT_FLOOR ? '#3498db' : '#3498db'}; font-weight: 600;">
                                         ${deviceData.AT_FLOOR ? 'YES' : 'NO'}
                                     </span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                    <span>🚀 Elevator Moving</span>
+                                    <span>🚀 ${movingName}</span>
                                     <span class="${deviceData.MOVING ? 'true' : 'false'}" style="color: ${deviceData.MOVING ? '#3498db' : '#3498db'}; font-weight: 600;">
                                         ${deviceData.MOVING ? 'YES' : 'NO'}
                                     </span>
@@ -3063,29 +3509,38 @@
                         modalContent.style.border = '3px solid #2c3e50';
                         modalContent.style.boxShadow = '0 10px 30px rgba(44, 62, 80, 0.4)';
                         
+                        // Get custom field names for device not found case
+                        const deviceId = device.deviceId;
+                        const outOfServiceName = getFieldDisplayName(deviceId, 'OUT_OF_SERVICE', 'Out of Service');
+                        const fireServiceName = getFieldDisplayName(deviceId, 'FIRE_SERVICE', 'Fire Service');
+                        const phoneCommName = getFieldDisplayName(deviceId, 'PHONE_COMM', 'Phone Comm');
+                        const pitFloodedName = getFieldDisplayName(deviceId, 'PIT_FLOODED', 'Pit Flooded');
+                        const atFloorName = getFieldDisplayName(deviceId, 'AT_FLOOR', 'Elevator at DZ');
+                        const movingName = getFieldDisplayName(deviceId, 'MOVING', 'Elevator Moving');
+                        
                         statusesContainer.innerHTML = `
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>🚫 Out of Service</span>
+                                <span>🚫 ${outOfServiceName}</span>
                                 <span class="offline" style="color: #e67e22; font-weight: 600;">📡 OFFLINE</span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>🔥 Fire Service</span>
+                                <span>🔥 ${fireServiceName}</span>
                                 <span class="offline" style="color: #e67e22; font-weight: 600;">📡 OFFLINE</span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>📞 Phone Comm</span>
+                                <span>📞 ${phoneCommName}</span>
                                 <span class="offline" style="color: #e67e22; font-weight: 600;">📡 OFFLINE</span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>💧 Pit Flooded</span>
+                                <span>💧 ${pitFloodedName}</span>
                                 <span class="offline" style="color: #e67e22; font-weight: 600;">📡 OFFLINE</span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>🏢 Elevator at DZ</span>
+                                <span>🏢 ${atFloorName}</span>
                                 <span class="offline" style="color: #e67e22; font-weight: 600;">📡 OFFLINE</span>
                             </div>
                             <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
-                                <span>🚀 Elevator Moving</span>
+                                <span>🚀 ${movingName}</span>
                                 <span class="offline" style="color: #e67e22; font-weight: 600;">📡 OFFLINE</span>
                             </div>
                         `;
@@ -3180,7 +3635,10 @@
             const timestampElement = document.getElementById('elevator-timestamp');
             if (timestampElement && isModalOpen) {
                 const now = new Date();
+                const timezone = getIANATimezone(globalTimezone);
+                const timezoneLabel = timezone.split('/').pop().replace(/_/g, ' ') + ' Time';
                 const localTime = now.toLocaleString('es-ES', {
+                    timeZone: timezone,
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
@@ -3188,7 +3646,7 @@
                     minute: '2-digit',
                     second: '2-digit'
                 });
-                timestampElement.textContent = `Last Update: ${localTime}`;
+                timestampElement.textContent = `Last Update: ${localTime} (${timezoneLabel})`;
             }
         }
 
@@ -3214,39 +3672,64 @@
         function closeElevatorModal() {
             stopDynamicTimestamp();
             document.getElementById('elevator-modal').style.display = 'none';
+            currentModalDevice = null;
         }
 
         // Función para filtrar elevadores (versión simplificada eliminada - usando la versión async)
 
-        // Función auxiliar para ordenar dispositivos por alarmas (alarmas primero)
+        // Función auxiliar para ordenar dispositivos: alarmas primero, operativos segundo, offline último
         async function sortDevicesByAlarms(devices) {
             try {
-                // Obtener datos de la API para verificar alarmas
+                // Obtener datos de la API para verificar alarmas y estado
                 const apiData = await getApiDataWithCache();
                 
                 if (apiData && apiData.success && apiData.data && Array.isArray(apiData.data)) {
                     const devicesWithAlarms = [];
-                    const devicesWithoutAlarms = [];
+                    const devicesOperational = [];
+                    const devicesOffline = [];
+                    
+                    const now = new Date();
                     
                     devices.forEach(device => {
                         const deviceData = apiData.data.find(d => d.device_id === device.deviceId);
                         
                         if (deviceData) {
+                            // Verificar si hay alarmas activas
                             const hasAlarm = deviceData.OUT_OF_SERVICE || deviceData.FIRE_SERVICE || 
                                            deviceData.PHONE_COMM || deviceData.PIT_FLOODED;
                             
+                            // Verificar si está offline (más de 60 segundos sin actualización)
+                            let isOffline = false;
+                            if (deviceData.timestamp) {
+                                try {
+                                    const deviceTime = new Date(deviceData.timestamp);
+                                    const timeDiff = now - deviceTime;
+                                    const secondsDiff = timeDiff / 1000;
+                                    isOffline = secondsDiff > 60;
+                                } catch (e) {
+                                    // Si no se puede parsear el timestamp, considerar offline
+                                    isOffline = true;
+                                }
+                            } else {
+                                // Sin timestamp, considerar offline
+                                isOffline = true;
+                            }
+                            
                             if (hasAlarm) {
                                 devicesWithAlarms.push(device);
+                            } else if (isOffline) {
+                                devicesOffline.push(device);
                             } else {
-                                devicesWithoutAlarms.push(device);
+                                devicesOperational.push(device);
                             }
                         } else {
-                            devicesWithoutAlarms.push(device);
+                            // Si no se encuentra en la API, es offline
+                            devicesOffline.push(device);
                         }
                     });
                     
-                    // Retornar ordenados: alarmas primero, luego el resto
-                    return [...devicesWithAlarms, ...devicesWithoutAlarms];
+                    // Retornar ordenados: alarmas primero, operativos segundo, offline último
+                    return [...devicesWithAlarms, ...devicesOperational, ...devicesOffline];
                 } else {
                     return devices;
                 }
@@ -3256,14 +3739,33 @@
         }
         // Variable para evitar múltiples cargas simultáneas del dashboard
         let isLoadingDashboard = false;
-        // Formatea un timestamp a "DD/MM/YYYY, HH:MM:SS (Bermuda Time)"
+        // Formatea un timestamp a "DD/MM/YYYY, HH:MM:SS (Timezone Label)"
         function formatBermudaTimestamp(input) {
             try {
                 if (input === undefined || input === null) return '';
-                // Si ya viene en hora local de Bermuda, no convertir de nuevo
-                if (typeof input === 'string' && input.includes('(Bermuda Time)')) {
+                
+                // Obtener timezone y label dinámicos
+                const timezone = getIANATimezone(globalTimezone);
+                const timezoneLabel = timezone.split('/').pop().replace(/_/g, ' ') + ' Time';
+                
+                // Si ya viene con un label de timezone, solo reemplazar el label (NO parsear de nuevo)
+                const timezoneLabelPattern = /\(([^)]+)\s+Time\)/i;
+                if (typeof input === 'string' && timezoneLabelPattern.test(input)) {
+                    // Si ya tiene formato correcto con timezone label, solo reemplazar el label
+                    // NO parsear de nuevo porque puede cambiar la hora debido a zonas horarias
                     const raw = input.trim();
-                    const clean = raw.replace('(Bermuda Time)', '').trim();
+                    const clean = raw.replace(timezoneLabelPattern, '').trim();
+                    
+                    // Validar que el formato sea correcto (DD/MM/YYYY, HH:MM:SS o DD/MM/YYYY)
+                    const dateTimePattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:,\s*(\d{1,2}):(\d{1,2}):(\d{1,2}))?$/;
+                    const match = clean.match(dateTimePattern);
+                    
+                    if (match) {
+                        // Formato válido, solo reemplazar el label sin parsear
+                        return clean + ` (${timezoneLabel})`;
+                    }
+                    
+                    // Si no coincide el patrón, intentar normalizar
                     let datePart = clean;
                     let timePart = '';
                     if (clean.includes(',')) {
@@ -3287,92 +3789,64 @@
                         let HH = (t[0] || '00').padStart(2, '0');
                         let MM = (t[1] || '00').padStart(2, '0');
                         let SS = (t[2] || '00').padStart(2, '0');
-                        return `${dd}/${mm}/${yyyy}, ${HH}:${MM}:${SS} (Bermuda Time)`;
+                        return `${dd}/${mm}/${yyyy}, ${HH}:${MM}:${SS} (${timezoneLabel})`;
                     }
-                    return `${dd}/${mm}/${yyyy} (Bermuda Time)`;
+                    return `${dd}/${mm}/${yyyy} (${timezoneLabel})`;
                 }
+                // Si no tiene timezone label, intentar parsear (solo para timestamps numéricos o formatos ISO)
                 let dateObj = null;
                 if (typeof input === 'number' || (typeof input === 'string' && /^\d+$/.test(input.trim()))) {
+                    // Timestamp numérico (milisegundos)
                     dateObj = new Date(Number(input));
                 } else if (typeof input === 'string') {
                     const raw = input.trim();
-                    let clean = raw.replace('(Bermuda Time)', '').trim();
-                    let day, month, year, hour = 0, minute = 0, second = 0;
-                    // Intento 1: "DD/MM/YYYY, HH:MM:SS" o "MM/DD/YYYY, HH:MM:SS"
-                    if (!dateObj && clean.includes(',')) {
-                        const parts = clean.split(',');
-                        const datePart = (parts[0] || '').trim();
-                        const timePart = (parts[1] || '').trim();
-                        const dateBits = datePart.split('/');
-                        const timeBits = timePart.split(':');
-                        const assumeDDMMYYYY = raw.includes('Bermuda Time');
-                        if (dateBits.length === 3) {
-                            if (assumeDDMMYYYY) {
-                                day = parseInt(dateBits[0], 10);
-                                month = parseInt(dateBits[1], 10);
-                                year = parseInt(dateBits[2], 10);
-                            } else {
-                                month = parseInt(dateBits[0], 10);
-                                day = parseInt(dateBits[1], 10);
-                                year = parseInt(dateBits[2], 10);
-                            }
-                        }
-                        if (timeBits.length >= 2) {
-                            hour = parseInt(timeBits[0], 10) || 0;
-                            minute = parseInt(timeBits[1], 10) || 0;
-                            second = parseInt(timeBits[2], 10) || 0;
-                        }
-                        if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-                            dateObj = new Date(year, month - 1, day, hour, minute, second);
+                    let clean = raw.replace(timezoneLabelPattern, '').trim();
+                    
+                    // Si ya tiene formato DD/MM/YYYY, HH:MM:SS, NO parsear (solo formatear con timezone)
+                    const dateTimePattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:,\s*(\d{1,2}):(\d{1,2}):(\d{1,2}))?$/;
+                    const match = clean.match(dateTimePattern);
+                    
+                    if (match) {
+                        // Ya está en formato DD/MM/YYYY, solo agregar el label
+                        return clean + ` (${timezoneLabel})`;
+                    }
+                    
+                    // Si no coincide, intentar parsear como timestamp ISO o formato estándar
+                    // Intento 1: Formato ISO (YYYY-MM-DD)
+                    if (clean.includes('-') && clean.includes('T')) {
+                        dateObj = new Date(clean);
+                    } else if (clean.includes('-')) {
+                        // Formato YYYY-MM-DD
+                        const isoMatch = clean.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+                        if (isoMatch) {
+                            const [, year, month, day] = isoMatch;
+                            dateObj = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
                         }
                     }
-                    // Intento 2: "DD/MM/YYYY HH:MM:SS" o "MM/DD/YYYY HH:MM:SS"
-                    if (!dateObj && clean.includes(' ')) {
-                        const parts = clean.split(' ');
-                        const datePart = (parts[0] || '').trim();
-                        const timePart = (parts[1] || '').trim();
-                        const dateBits = datePart.split('/');
-                        const timeBits = timePart.split(':');
-                        const assumeDDMMYYYY = raw.includes('Bermuda Time');
-                        if (dateBits.length === 3) {
-                            if (assumeDDMMYYYY) {
-                                day = parseInt(dateBits[0], 10);
-                                month = parseInt(dateBits[1], 10);
-                                year = parseInt(dateBits[2], 10);
-                            } else {
-                                month = parseInt(dateBits[0], 10);
-                                day = parseInt(dateBits[1], 10);
-                                year = parseInt(dateBits[2], 10);
-                            }
-                        }
-                        if (timeBits.length >= 2) {
-                            hour = parseInt(timePart.split(':')[0], 10) || 0;
-                            minute = parseInt(timePart.split(':')[1], 10) || 0;
-                            second = parseInt(timePart.split(':')[2], 10) || 0;
-                        }
-                        if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-                            dateObj = new Date(year, month - 1, day, hour, minute, second);
-                        }
-                    }
-                    // Intento 3: parseo directo
+                    
+                    // Intento 2: parseo directo (solo si no se pudo parsear antes)
                     if (!dateObj) {
                         dateObj = new Date(raw);
                     }
                 }
-                if (!dateObj || isNaN(dateObj.getTime())) {
-                    return String(input);
+                
+                // Si se pudo parsear, formatear con el timezone del sheet
+                if (dateObj && !isNaN(dateObj.getTime())) {
+                    const formatted = dateObj.toLocaleString('en-GB', {
+                        timeZone: timezone,
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    });
+                    return `${formatted} (${timezoneLabel})`;
                 }
-                const formatted = dateObj.toLocaleString('en-GB', {
-                    timeZone: 'Atlantic/Bermuda',
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                });
-                return `${formatted} (Bermuda Time)`;
+                
+                // Si no se pudo parsear, devolver el input original
+                return String(input);
             } catch (_) {
                 return String(input ?? '');
             }
@@ -3384,7 +3858,24 @@
                 return;
             }
             
+            // Guardar referencias para recargar después de actualizar cache
+            lastDashboardUser = currentUser;
+            lastDashboardFilter = statusFilter;
+            
             try {
+                // Asegurar que el timezone esté cargado antes de formatear timestamps
+                // Si globalTimezone es el valor por defecto inicial, cargar desde el sheet
+                if (!globalTimezone || (globalTimezone === 'Atlantic/Bermuda' && !localStorage.getItem('dispositivos_timezone_loaded'))) {
+                    await loadCompanyName();
+                    localStorage.setItem('dispositivos_timezone_loaded', 'true');
+                }
+                
+                // Cargar cache de nombres personalizados inmediatamente (síncrono)
+                loadCustomFieldNamesFromCache();
+                
+                // Actualizar nombres personalizados en segundo plano (sin esperar)
+                loadCustomFieldNames().catch(err => console.error('Error loading custom field names:', err));
+                
                 // Cargar datos de logs
                 const logsResponse = await fetch('https://script.google.com/macros/s/AKfycbwmymPhQ89H9I0Mc25PYBYcgLSFANar8FyWbFTF0wCzk8OCbm6IXproy9YFhgKvpOJD_w/exec');
                 const logsData = await logsResponse.json();
@@ -3393,50 +3884,124 @@
                     throw new Error('Error al cargar logs de la API');
                 }
                 
-                // Obtener la fecha actual (solo día/mes/año)
-                const now = new Date();
-                const todayDay = now.getDate();
-                const todayMonth = now.getMonth() + 1;
-                const todayYear = now.getFullYear();
+                // Cargar dispositivos para obtener nombres de edificios
+                let deviceToBuildingMap = {};
+                try {
+                    const devicesResponse = await fetch('https://script.google.com/macros/s/AKfycbwt8uBwwZ2VBe-bTDST1sT_BxTjxqT163JVv42WxRdplMXjftHI9NOtYvr2T6tv7-z_Vg/exec');
+                    const devicesData = await devicesResponse.json();
+                    
+                    if (devicesData.success && devicesData.data && Array.isArray(devicesData.data)) {
+                        devicesData.data.forEach(device => {
+                            if (device.deviceId && device.buildingName) {
+                                deviceToBuildingMap[device.deviceId] = device.buildingName;
+                            }
+                        });
+                    }
+                } catch (devicesError) {
+                    console.error('Error loading devices for building names:', devicesError);
+                }
                 
-                // Filtrar logs por fecha (solo del día de hoy)
+                // Obtener la fecha actual en el timezone del sheet (solo día/mes/año)
+                const timezone = getIANATimezone(globalTimezone);
+                const now = new Date();
+                const todayStr = now.toLocaleString('en-GB', {
+                    timeZone: timezone,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+                const [todayDay, todayMonth, todayYear] = todayStr.split('/').map(n => parseInt(n, 10));
+                
+                // Filtrar logs por fecha (solo del día de hoy en el timezone del sheet)
                 let todayLogs = logsData.data.filter(log => {
-                    const timestamp = log.timestamp || '';
-                    
-                    // Extraer la fecha del timestamp
-                    let logDateStr = '';
-                    
-                    if (timestamp.includes(',')) {
-                        logDateStr = timestamp.split(',')[0].trim();
-                    } else if (timestamp.includes(' ')) {
-                        logDateStr = timestamp.split(' ')[0].trim();
-                    }
-                    
-                    // Parsear la fecha dependiendo del formato
-                    let logDay, logMonth, logYear;
-                    
-                    if (timestamp.includes('Bermuda Time')) {
-                        // Formato: DD/MM/YYYY (Bermuda Time)
-                        const parts = logDateStr.split('/');
-                        if (parts.length === 3) {
-                            logDay = parseInt(parts[0]);
-                            logMonth = parseInt(parts[1]);
-                            logYear = parseInt(parts[2]);
+                    try {
+                        const timestamp = log.timestamp || '';
+                        
+                        if (!timestamp) return false;
+                        
+                        // Extraer la fecha del timestamp
+                        let logDateStr = '';
+                        
+                        if (timestamp.includes(',')) {
+                            logDateStr = timestamp.split(',')[0].trim();
+                        } else if (timestamp.includes(' ')) {
+                            // Si tiene espacio, tomar la primera parte (antes del espacio)
+                            logDateStr = timestamp.split(' ')[0].trim();
+                        } else {
+                            // Si no tiene separadores, intentar parsear directamente
+                            logDateStr = timestamp.trim();
                         }
-                    } else {
-                        // Formato: MM/DD/YYYY (estándar)
-                        const parts = logDateStr.split('/');
-                        if (parts.length === 3) {
-                            logMonth = parseInt(parts[0]);
-                            logDay = parseInt(parts[1]);
-                            logYear = parseInt(parts[2]);
+                        
+                        // Parsear la fecha dependiendo del formato
+                        let logDay, logMonth, logYear;
+                        
+                        // Detectar si tiene formato DD/MM/YYYY (cualquier timezone label indica formato DD/MM/YYYY)
+                        const timezoneLabelPattern = /\(([^)]+)\s+Time\)/i;
+                        const hasTimezoneLabel = timezoneLabelPattern.test(timestamp);
+                        
+                        // Intentar parsear como DD/MM/YYYY primero (formato más común con timezone label)
+                        const dateParts = logDateStr.split('/');
+                        if (dateParts.length === 3) {
+                            if (hasTimezoneLabel) {
+                                // Formato: DD/MM/YYYY (Timezone Label)
+                                logDay = parseInt(dateParts[0], 10);
+                                logMonth = parseInt(dateParts[1], 10);
+                                logYear = parseInt(dateParts[2], 10);
+                            } else {
+                                // Sin timezone label, intentar ambos formatos
+                                // Primero intentar DD/MM/YYYY (más común en logs)
+                                const day = parseInt(dateParts[0], 10);
+                                const month = parseInt(dateParts[1], 10);
+                                const year = parseInt(dateParts[2], 10);
+                                
+                                // Si el día es > 12, definitivamente es DD/MM/YYYY
+                                if (day > 12) {
+                                    logDay = day;
+                                    logMonth = month;
+                                    logYear = year;
+                                } else {
+                                    // Podría ser MM/DD/YYYY o DD/MM/YYYY
+                                    // Intentar ambos y ver cuál coincide con el año actual
+                                    if (year === todayYear || year === new Date().getFullYear()) {
+                                        // Si el mes coincide con el mes actual, asumir DD/MM/YYYY
+                                        if (month === todayMonth) {
+                                            logDay = day;
+                                            logMonth = month;
+                                            logYear = year;
+                                        } else if (day === todayMonth) {
+                                            // Podría ser MM/DD/YYYY
+                                            logMonth = day;
+                                            logDay = month;
+                                            logYear = year;
+                                        } else {
+                                            // Por defecto, asumir DD/MM/YYYY
+                                            logDay = day;
+                                            logMonth = month;
+                                            logYear = year;
+                                        }
+                                    } else {
+                                        // Por defecto, asumir DD/MM/YYYY
+                                        logDay = day;
+                                        logMonth = month;
+                                        logYear = year;
+                                    }
+                                }
+                            }
                         }
+                        
+                        // Validar que se parseó correctamente
+                        if (!logDay || !logMonth || !logYear || isNaN(logDay) || isNaN(logMonth) || isNaN(logYear)) {
+                            return false;
+                        }
+                        
+                        // Comparar fecha (usando el timezone del sheet)
+                        const isToday = (logDay === todayDay && logMonth === todayMonth && logYear === todayYear);
+                        
+                        return isToday;
+                    } catch (error) {
+                        console.error('Error parsing log timestamp:', error, log);
+                        return false;
                     }
-                    
-                    // Comparar fecha
-                    const isToday = (logDay === todayDay && logMonth === todayMonth && logYear === todayYear);
-                    
-                    return isToday;
                 });
                 
                 // Filtrar logs por usuario
@@ -3484,8 +4049,8 @@
                     emptyCard.innerHTML = `
                         <span class="icon" style="background: #3498db;">ℹ️</span>
                         <span class="msg">
-                            <strong>Sin actividad</strong><br>
-                            <small>No hay cambios registrados hoy</small>
+                            <strong>No activity</strong><br>
+                            <small>No changes recorded today</small>
                         </span>
                         <div class="progress" style="background: #3498db;"></div>
                     `;
@@ -3507,42 +4072,53 @@
                     const newValue = log.new_value;
                     const timestamp = log.timestamp;
                     
+                    // Obtener nombre del edificio del mapeo
+                    const buildingName = deviceToBuildingMap[deviceId] || '';
+                    const deviceDisplay = buildingName ? `${deviceId} - ${buildingName}` : deviceId;
+                    
                     // Omitir eventos informativos que no deben mostrarse
                     if (inputChanged === 'AT_FLOOR' || inputChanged === 'MOVING') {
                         return; // no crear toast
                     }
                     
+                    // Mapeo de emojis para cada campo
+                    const fieldEmojis = {
+                        'OUT_OF_SERVICE': '🚫',
+                        'FIRE_SERVICE': '🔥',
+                        'PHONE_COMM': '📞',
+                        'PIT_FLOODED': '💧',
+                        'AT_FLOOR': '🏢',
+                        'MOVING': '🚀'
+                    };
+                    
+                    // Obtener nombre personalizado del campo
+                    const fieldDisplayName = getFieldDisplayName(deviceId, inputChanged, inputChanged);
+                    const fieldEmoji = fieldEmojis[inputChanged] || 'ℹ️';
+                    
                     // Determinar color según el cambio
                     let statusColor, icon, changeText;
                     
-                    // Excepciones: AT_FLOOR y MOVING no deben mostrarse como alerta
-                    if (inputChanged === 'AT_FLOOR' || inputChanged === 'MOVING') {
-                        statusColor = '#3498db';
-                        icon = 'ℹ';
-                        const oldTxt = (oldValue === true || oldValue === 'true') ? 'ON' : 'OFF';
-                        const newTxt = (newValue === true || newValue === 'true') ? 'ON' : 'OFF';
-                        changeText = `${inputChanged}: ${oldTxt} → ${newTxt}`;
-                    } else if (newValue === true || newValue === 'true') {
+                    if (newValue === true || newValue === 'true') {
                         // Cambió a true = ROJO = ALARMA ACTIVADA
                         statusColor = '#e74c3c';
                         icon = '🚨';
-                        changeText = `${inputChanged}: OFF → ON`;
+                        changeText = `${fieldEmoji} ${fieldDisplayName}: 🚨 ALARM`;
                     } else if (newValue === false || newValue === 'false') {
                         // Cambió a false = VERDE = ALARMA DESACTIVADA
                         statusColor = '#27ae60';
                         icon = '✔';
-                        changeText = `${inputChanged}: ON → OFF`;
+                        changeText = `${fieldEmoji} ${fieldDisplayName}: ✅ NO`;
                     } else {
                         // Otro tipo de cambio
                         statusColor = '#3498db';
                         icon = 'ℹ';
-                        changeText = `${inputChanged}: ${oldValue} → ${newValue}`;
+                        changeText = `${fieldEmoji} ${fieldDisplayName}: ${oldValue} → ${newValue}`;
                     }
                     
                     card.innerHTML = `
                         <span class="icon" style="background: ${statusColor};">${icon}</span>
                         <span class="msg">
-                            <strong>${deviceId}</strong><br>
+                            <strong>${deviceDisplay}</strong><br>
                             <small>${changeText}</small><br>
                             <small style="opacity: 0.7;">${formatBermudaTimestamp(timestamp)}</small>
                         </span>
@@ -3676,6 +4252,12 @@
                         }
                     }
                     
+                    // Esperar un momento para que todas las tarjetas se actualicen completamente antes de reordenar
+                    setTimeout(() => {
+                        // Reordenar tarjetas después de crearlas para asegurar orden correcto: alarmas primero, operativos segundo, offline último
+                        reorderCardsByStatus(container);
+                    }, 500);
+                    
                     // Si no hay dispositivos válidos, mostrar mensaje específico
                     if (validDevices.length === 0) {
                         if (currentUser && currentUser.role === 'Client') {
@@ -3705,7 +4287,7 @@
         async function sendServiceReportByEmail(serviceEntry) {
             try {
                 // Enviar a un solo correo
-                const emailResult = await sendEmailViaForm(SERVICE_REPORT_EMAIL, serviceEntry);
+                const emailResult = await sendEmailViaForm(getAdminEmail(), serviceEntry);
                 
                 if (emailResult.success) {
                     return { success: true, message: 'Service report sent by email successfully!' };
@@ -3726,7 +4308,7 @@
                     // Crear formulario para enviar por email
                     const form = document.createElement('form');
                     form.method = 'POST';
-                    form.action = 'https://script.google.com/macros/s/AKfycbwSHv8Ygw7oWLImpCYg1JVaqmS8WZCidCmqwEnI4Knp-rCc-D7qvrZYhQbwoIqx6Qpjdw/exec';
+                    form.action = 'https://script.google.com/macros/s/AKfycbxLBMkswuIHLlQVrXLM7Jo48UUILeAWZd_37cldcjqkP3gsyvJoaPXYJp_p0TP4vyxm0w/exec';
                     form.target = 'hiddenIframe_' + Date.now(); // Iframe único para cada envío
                     form.style.display = 'none';
                     
@@ -3740,8 +4322,10 @@
                         serviceNotes: serviceEntry.notes,
                         serviceDate: serviceEntry.date,
                         reportId: serviceEntry.id,
-                        companyName: 'BERMUDA ELEVATOR',
-                        supportEmail: 'jose@elevator.bm'
+                        companyName: globalCompanyName || '',
+                        supportEmail: globalAdminEmail || 'jose@elevator.bm',
+                        serviceImage: serviceEntry.image || '',
+                        imageFileName: serviceEntry.imageFileName || ''
                     };
                     
                     Object.keys(fields).forEach(key => {
@@ -4030,8 +4614,10 @@
         const AUTO_UPDATE_DELAY = 5000; // 5 segundos antes de comenzar
         const AUTO_UPDATE_INTERVAL = 15000; // 15 segundos entre actualizaciones
         
-        // Configuración de emails de destino para reportes de servicio
-        const SERVICE_REPORT_EMAIL = 'jose@elevator.bm'; // Email principal
+        // Function to get admin email (from API or default)
+        function getAdminEmail() {
+            return globalAdminEmail || 'jose@elevator.bm';
+        }
 
         // Función para obtener datos de la API con cache
         async function getApiDataWithCache() {
@@ -4185,6 +4771,12 @@
                                 //console.log(
                             }
                         });
+                        
+                        // Esperar un momento para que todas las actualizaciones se completen antes de reordenar
+                        setTimeout(() => {
+                            // Reordenar tarjetas después de actualizar: alarmas primero, operativos segundo, offline último
+                            reorderCardsByStatus(unitsContainer);
+                        }, 100);
                     } else if (isUnitsVisible) {
                         //console.log(
                     }
@@ -4197,6 +4789,43 @@
                 //console.error(
             }
         }
+        // Función para reordenar tarjetas según estado: alarmas primero, operativos segundo, offline último
+        function reorderCardsByStatus(container) {
+            if (!container) return;
+            
+            const cards = Array.from(container.querySelectorAll('.item-card[data-device-id]'));
+            
+            // Función para obtener el orden de prioridad de una tarjeta
+            function getCardPriority(card) {
+                const statusBadge = card.querySelector('.status-badge');
+                if (!statusBadge) return 2; // Por defecto, operativo
+                
+                const statusText = statusBadge.textContent.trim().toUpperCase();
+                const statusClass = statusBadge.className;
+                
+                // Prioridad: 0 = alarma, 1 = operativo, 2 = offline
+                if (statusText === 'ALARM' || statusClass.includes('alarm')) {
+                    return 0;
+                } else if (statusText === 'OFFLINE' || statusClass.includes('offline')) {
+                    return 2;
+                } else {
+                    return 1; // operational
+                }
+            }
+            
+            // Ordenar tarjetas por prioridad
+            cards.sort((a, b) => {
+                const priorityA = getCardPriority(a);
+                const priorityB = getCardPriority(b);
+                return priorityA - priorityB;
+            });
+            
+            // Reordenar en el DOM
+            cards.forEach(card => {
+                container.appendChild(card);
+            });
+        }
+        
         // Función para actualizar el estado de una tarjeta específica
         function updateCardStatus(card, deviceData) {
             const deviceId = deviceData.device_id;
@@ -4895,11 +5524,21 @@
         }
 
 
+        // Función para convertir imagen a base64
+        function convertImageToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
         // Función para agregar entrada de servicio
         async function addServiceEntry() {
             const deviceSelect = document.getElementById('serviceDeviceSelect');
             const serviceType = document.getElementById('serviceType');
-            const serviceNotes = document.getElementById('serviceNotes');
+            const serviceImage = document.getElementById('serviceImage');
             const serviceMsg = document.getElementById('serviceMsg');
             const serviceHistory = document.getElementById('serviceHistory');
             
@@ -4910,10 +5549,19 @@
                 return;
             }
             
-            if (!serviceNotes.value.trim()) {
-                serviceMsg.textContent = 'Please enter service notes';
-                serviceMsg.className = 'error';
-                return;
+            // Convertir imagen a base64 si existe
+            let imageBase64 = '';
+            let imageFileName = '';
+            if (serviceImage.files && serviceImage.files.length > 0) {
+                try {
+                    imageBase64 = await convertImageToBase64(serviceImage.files[0]);
+                    imageFileName = serviceImage.files[0].name;
+                } catch (error) {
+                    console.error('Error converting image:', error);
+                    serviceMsg.textContent = 'Error processing image. Please try again.';
+                    serviceMsg.className = 'error';
+                    return;
+                }
             }
             
             // Crear entrada de servicio
@@ -4922,18 +5570,24 @@
                 device: deviceSelect.options[deviceSelect.selectedIndex].text,
                 deviceId: deviceSelect.value,
                 type: serviceType.value,
-                notes: serviceNotes.value,
-                date: new Date().toLocaleString('en-GB', {
-                    timeZone: 'Atlantic/Bermuda',
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                }) + ' (Bermuda Time)',
-                photos: 0
+                notes: '',
+                date: (() => {
+                    const timezone = getIANATimezone(globalTimezone);
+                    const timezoneLabel = timezone.split('/').pop().replace(/_/g, ' ') + ' Time';
+                    return new Date().toLocaleString('en-GB', {
+                        timeZone: timezone,
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    }) + ` (${timezoneLabel})`;
+                })(),
+                photos: imageBase64 ? 1 : 0,
+                image: imageBase64,
+                imageFileName: imageFileName
             };
             
             // Agregar al historial
@@ -4945,7 +5599,9 @@
             
             // Limpiar formulario
             deviceSelect.selectedIndex = 0; // Resetear al primer elemento (Select a device...)
-            serviceNotes.value = '';
+            serviceImage.value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('previewImg').src = '';
             
             // Mostrar mensaje de éxito
             if (emailResult.success) {
@@ -5846,6 +6502,22 @@
         }
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
+            // Load cached company data immediately for loading screen and header logo
+            const cachedCompanyName = window._cachedCompanyName || localStorage.getItem('dispositivos_companyName');
+            const cachedCompanyLogo = window._cachedCompanyLogo || localStorage.getItem('dispositivos_companyLogo');
+            
+            if (cachedCompanyName) {
+                updateLoadingLogoText(cachedCompanyName);
+            }
+            
+            if (cachedCompanyLogo) {
+                updateHeaderLogo(cachedCompanyLogo, cachedCompanyName);
+            }
+            
+            // Load company data from API (will update if changed) - delay to avoid showing change in real-time
+            setTimeout(() => {
+                loadCompanyName();
+            }, 3000);
             
             // Filtros de estado
             document.querySelectorAll('.filter-pill').forEach(pill => {
@@ -5900,12 +6572,14 @@
             // Cerrar modal del elevador
             document.getElementById('close-elevator-modal').addEventListener('click', function() {
                 document.getElementById('elevator-modal').style.display = 'none';
+                currentModalDevice = null;
             });
             
             // Cerrar modal del elevador al hacer clic fuera
             document.getElementById('elevator-modal').addEventListener('click', function(e) {
                 if (e.target === this) {
                     this.style.display = 'none';
+                    currentModalDevice = null;
                 }
             });
             
@@ -5949,6 +6623,36 @@
             
             // Add service entry button
             document.getElementById('addServiceBtn').addEventListener('click', addServiceEntry);
+            
+            // Image preview functionality
+            const serviceImage = document.getElementById('serviceImage');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            const removeImageBtn = document.getElementById('removeImageBtn');
+            
+            if (serviceImage) {
+                serviceImage.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewImg.src = e.target.result;
+                            imagePreview.style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        imagePreview.style.display = 'none';
+                    }
+                });
+            }
+            
+            if (removeImageBtn) {
+                removeImageBtn.addEventListener('click', function() {
+                    serviceImage.value = '';
+                    imagePreview.style.display = 'none';
+                    previewImg.src = '';
+                });
+            }
             
             // Generate report button (handled by generateReportPDF listener below)
             
@@ -6778,24 +7482,27 @@
                     let itemDate = null;
                     
                     try {
+                        // Patrón para detectar cualquier label de timezone
+                        const timezoneLabelPattern = /\(([^)]+)\s+Time\)/i;
+                        
                         if (timestamp.includes(',')) {
-                            // Format: "DD/MM/YYYY, HH:MM:SS (Bermuda Time)" or "DD/MM/YYYY, HH:MM:SS"
+                            // Format: "DD/MM/YYYY, HH:MM:SS (Timezone Label)" or "DD/MM/YYYY, HH:MM:SS"
                             const dateTimePart = timestamp.split(',')[0].trim();
                             let timePart = timestamp.split(',')[1].trim();
                             
-                            // Remove "(Bermuda Time)" if present
-                            if (timePart.includes('(Bermuda Time)')) {
-                                timePart = timePart.replace('(Bermuda Time)', '').trim();
+                            // Remove timezone label if present
+                            if (timezoneLabelPattern.test(timePart)) {
+                                timePart = timePart.replace(timezoneLabelPattern, '').trim();
                             }
                             
                             const [day, month, year] = dateTimePart.split('/');
                             const [hour, minute, second] = timePart.split(':');
                             itemDate = new Date(year, month - 1, day, hour, minute, second);
                         } else if (timestamp.includes(' ')) {
-                            // Format: "DD/MM/YYYY HH:MM:SS" or "DD/MM/YYYY HH:MM:SS (Bermuda Time)"
+                            // Format: "DD/MM/YYYY HH:MM:SS" or "DD/MM/YYYY HH:MM:SS (Timezone Label)"
                             let cleanTimestamp = timestamp;
-                            if (cleanTimestamp.includes('(Bermuda Time)')) {
-                                cleanTimestamp = cleanTimestamp.replace('(Bermuda Time)', '').trim();
+                            if (timezoneLabelPattern.test(cleanTimestamp)) {
+                                cleanTimestamp = cleanTimestamp.replace(timezoneLabelPattern, '').trim();
                             }
                             
                             const [datePart, timePart] = cleanTimestamp.split(' ');
@@ -6827,10 +7534,102 @@
             
             return filteredData;
         }
+        // Function to compress and resize image for PDF (reduces file size significantly, preserves transparency)
+        // Returns: { base64: string, width: number, height: number }
+        async function compressImageForPDF(imageUrl, maxWidth = 200, maxHeight = 200, quality = 0.9) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    
+                    img.onload = function() {
+                        try {
+                            // Calculate new dimensions maintaining aspect ratio
+                            let width = img.width;
+                            let height = img.height;
+                            
+                            if (width > maxWidth || height > maxHeight) {
+                                const ratio = Math.min(maxWidth / width, maxHeight / height);
+                                width = width * ratio;
+                                height = height * ratio;
+                            }
+                            
+                            // Create canvas and draw resized image
+                            const canvas = document.createElement('canvas');
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            
+                            // Clear canvas to ensure transparency is preserved
+                            ctx.clearRect(0, 0, width, height);
+                            
+                            // Use better image smoothing
+                            ctx.imageSmoothingEnabled = true;
+                            ctx.imageSmoothingQuality = 'high';
+                            
+                            // Draw image (preserves transparency)
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            // Convert to base64 as PNG to preserve transparency (quality parameter is ignored for PNG)
+                            const compressedBase64 = canvas.toDataURL('image/png');
+                            resolve({ base64: compressedBase64, width: width, height: height });
+                        } catch (error) {
+                            console.log('Error compressing image:', error);
+                            // Fallback: try to fetch and return as base64 without compression
+                            fetch(imageUrl)
+                                .then(response => response.blob())
+                                .then(blob => {
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                        const img2 = new Image();
+                                        img2.onload = () => {
+                                            resolve({ base64: reader.result, width: img2.width, height: img2.height });
+                                        };
+                                        img2.onerror = () => resolve({ base64: reader.result, width: 50, height: 50 });
+                                        img2.src = reader.result;
+                                    };
+                                    reader.onerror = reject;
+                                    reader.readAsDataURL(blob);
+                                })
+                                .catch(reject);
+                        }
+                    };
+                    
+                    img.onerror = function() {
+                        // If image fails to load, try fetch as fallback
+                        fetch(imageUrl)
+                            .then(response => response.blob())
+                            .then(blob => {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                    const img2 = new Image();
+                                    img2.onload = () => {
+                                        resolve({ base64: reader.result, width: img2.width, height: img2.height });
+                                    };
+                                    img2.onerror = () => resolve({ base64: reader.result, width: 50, height: 50 });
+                                    img2.src = reader.result;
+                                };
+                                reader.onerror = reject;
+                                reader.readAsDataURL(blob);
+                            })
+                            .catch(reject);
+                    };
+                    
+                    img.src = imageUrl;
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+        
         // Function to generate and download PDF reports
         async function generateReportPDF() {
             //console.log(
             try {
+                // Load company data if not already loaded
+                if (!globalLogoUrl || !globalSignatureUrl) {
+                    await loadCompanyName();
+                }
                 // Check if jsPDF is available
                 if (typeof window.jspdf === 'undefined') {
                     //console.error(
@@ -6974,12 +7773,54 @@
                     return false;
                 }
                 
-                // Report header
-                doc.setFillColor(11, 61, 145);
-                doc.rect(0, 0, pageWidth, 30, 'F');
+                // Add logo image if available, otherwise use text
+                let logoAdded = false;
+                let headerHeight = 30; // Default height if no logo
                 
-                doc.setTextColor(255, 255, 255);
-                yPosition = addText('BERMUDA ELEVATOR - SYSTEM REPORT', margin, 20, pageWidth - 2 * margin, 16);
+                if (globalLogoUrl && globalLogoUrl.trim() !== '') {
+                    try {
+                        // High quality logo (max 720x720px for good quality, preserves transparency)
+                        const logoData = await compressImageForPDF(globalLogoUrl, 720, 720, 1.0);
+                        // Calculate PDF dimensions maintaining aspect ratio (max 60mm height for better quality)
+                        const maxPdfHeight = 60;
+                        const aspectRatio = logoData.width / logoData.height;
+                        let pdfWidth = maxPdfHeight * aspectRatio;
+                        let pdfHeight = maxPdfHeight;
+                        
+                        // If width exceeds reasonable limit, scale down but keep quality
+                        if (pdfWidth > 120) {
+                            pdfWidth = 120;
+                            pdfHeight = pdfWidth / aspectRatio;
+                        }
+                        
+                        // Calculate header height based on logo size
+                        headerHeight = pdfHeight + 10;
+                        
+                        // Report header (white background)
+                        doc.setFillColor(255, 255, 255);
+                        doc.rect(0, 0, pageWidth, headerHeight, 'F');
+                        
+                        doc.addImage(logoData.base64, 'PNG', margin, 5, pdfWidth, pdfHeight);
+                        yPosition = pdfHeight + 10;
+                        logoAdded = true;
+                    } catch (imgError) {
+                        console.log('Could not add logo image:', imgError);
+                        // Fall back to text
+                        doc.setFillColor(255, 255, 255);
+                        doc.rect(0, 0, pageWidth, headerHeight, 'F');
+                    }
+                } else {
+                    // Report header (white background) - no logo
+                    doc.setFillColor(255, 255, 255);
+                    doc.rect(0, 0, pageWidth, headerHeight, 'F');
+                }
+                
+                // If logo was not added, use text
+                if (!logoAdded) {
+                    doc.setTextColor(0, 0, 0);
+                    const reportTitle = globalCompanyName ? `${globalCompanyName.toUpperCase()} - SYSTEM REPORT` : 'SYSTEM REPORT';
+                    yPosition = addText(reportTitle, margin, 20, pageWidth - 2 * margin, 16);
+                }
                 
                 doc.setTextColor(0, 0, 0);
                 yPosition += 10;
@@ -6995,8 +7836,19 @@
                 yPosition = addText(`Device: ${selectedDevice === 'all' ? 'All Devices' : selectedDevice}`, margin, yPosition, pageWidth - 2 * margin, 12);
                 yPosition = addText(`Date Range: ${dateRangeText}`, margin, yPosition, pageWidth - 2 * margin, 12);
                 yPosition = addText(`Total Records: ${filteredData.length}`, margin, yPosition, pageWidth - 2 * margin, 12);
-                const bermudaNow = new Date().toLocaleString('en-US', { timeZone: 'Atlantic/Bermuda' });
-                yPosition = addText(`Generated: ${bermudaNow} (Bermuda Time)`, margin, yPosition, pageWidth - 2 * margin, 12);
+                const timezone = getIANATimezone(globalTimezone);
+                const timezoneLabel = timezone.split('/').pop().replace(/_/g, ' ') + ' Time';
+                const localNow = new Date().toLocaleString('en-US', { 
+                    timeZone: timezone,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                yPosition = addText(`Generated: ${localNow} (${timezoneLabel})`, margin, yPosition, pageWidth - 2 * margin, 12);
                 
                 yPosition += 15;
                 
@@ -7098,6 +7950,41 @@
                     yPosition = addText(`  • ${device}: ${count} events`, margin + 10, yPosition, pageWidth - 2 * margin, 9);
                 });
                 
+                // Add signature image before footer if available
+                if (globalSignatureUrl) {
+                    try {
+                        // Get the last page
+                        const lastPage = doc.internal.getNumberOfPages();
+                        doc.setPage(lastPage);
+                        
+                        // Add signature at the bottom (leave space for footer)
+                        const signatureY = pageHeight - 40;
+                        try {
+                            // Compress and resize signature before adding to PDF (max 200x80px, preserves transparency)
+                            const signatureData = await compressImageForPDF(globalSignatureUrl, 200, 80, 0.9);
+                            // Calculate PDF dimensions maintaining aspect ratio
+                            const maxPdfWidth = 50;
+                            const maxPdfHeight = 20;
+                            const aspectRatio = signatureData.width / signatureData.height;
+                            let pdfWidth = maxPdfWidth;
+                            let pdfHeight = maxPdfWidth / aspectRatio;
+                            
+                            // If height exceeds limit, scale down
+                            if (pdfHeight > maxPdfHeight) {
+                                pdfHeight = maxPdfHeight;
+                                pdfWidth = maxPdfHeight * aspectRatio;
+                            }
+                            
+                            doc.addImage(signatureData.base64, 'PNG', margin, signatureY, pdfWidth, pdfHeight);
+                        } catch (imgError) {
+                            // If image fails, skip signature
+                            console.log('Could not add signature image:', imgError);
+                        }
+                    } catch (error) {
+                        console.log('Error adding signature:', error);
+                    }
+                }
+                
                 // Footer
                 const totalPages = doc.internal.getNumberOfPages();
                 for (let i = 1; i <= totalPages; i++) {
@@ -7105,7 +7992,8 @@
                     doc.setFontSize(8);
                     doc.setTextColor(128, 128, 128);
                     doc.text(`Page ${i} of ${totalPages}`, pageWidth - 30, pageHeight - 10);
-                    doc.text('Generated by Bermuda Elevator System', margin, pageHeight - 10);
+                    const footerText = globalCompanyName ? `Generated by ${globalCompanyName} System` : 'Generated by Elevator System';
+                    doc.text(footerText, margin, pageHeight - 10);
                 }
                 
                 // Generate filename
@@ -7895,7 +8783,7 @@
                                 overflow: hidden;
                                 text-overflow: ellipsis;
                             ">
-                                Bermuda Elevator
+                                <span id="deviceCompanyName"></span>
                             </div>
                             <div style="
                                 font-size: 14px;
