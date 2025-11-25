@@ -3133,6 +3133,53 @@
             }
         }
 
+        // Function to update login screen logo text with colors (supports unlimited words)
+        function updateLoginLogoText(companyName, colorData = null) {
+            if (!companyName) return;
+
+            const loginLogo = document.querySelector('.login-logo h1');
+            if (!loginLogo) return;
+
+            // Use colorData if provided, otherwise try to use companyName if it has color format
+            const dataToProcess = colorData || companyName;
+
+            // If data has color format (format: "WORD1#color1 WORD2#color2 WORD3#color3 ...")
+            if (dataToProcess && dataToProcess.includes('#')) {
+                const parts = dataToProcess.split(' ');
+                let hasColorFormat = false;
+                let htmlOutput = '';
+
+                // Process each part
+                for (let i = 0; i < parts.length; i++) {
+                    if (parts[i].includes('#')) {
+                        hasColorFormat = true;
+                        const [text, colorRaw] = parts[i].split('#');
+                        
+                        if (text && colorRaw) {
+                            // Add # only if it looks like a hex color (not a CSS color name)
+                            let color = colorRaw;
+                            if (/^[0-9A-Fa-f]{3,6}$/.test(colorRaw)) {
+                                color = `#${colorRaw}`;
+                            }
+                            
+                            // Add space before word if not the first one
+                            const space = i > 0 ? ' ' : '';
+                            htmlOutput += `${space}<span style="color: ${color};">${text}</span>`;
+                        }
+                    }
+                }
+
+                // If we found color format, use it
+                if (hasColorFormat && htmlOutput) {
+                    loginLogo.innerHTML = htmlOutput;
+                    return;
+                }
+            }
+
+            // Default behavior: just show company name
+            loginLogo.textContent = companyName;
+        }
+
         // Function to update header logo image
         function updateHeaderLogo(logoUrl, companyName) {
             const headerLogoImg = document.getElementById('headerLogoImg');
@@ -3154,6 +3201,7 @@
                 const cachedColorData = localStorage.getItem('dispositivos_colorData');
                 if (cachedCompanyName) {
                     updateLoadingLogoText(cachedCompanyName, cachedColorData);
+                    updateLoginLogoText(cachedCompanyName, cachedColorData);
                 }
 
                 // Load timezone from cache immediately
@@ -3203,11 +3251,8 @@
                         // Update loading screen logo with fresh data
                         updateLoadingLogoText(globalCompanyName, colorData);
 
-                        // Update login screen logo
-                        const loginLogo = document.querySelector('.login-logo h1');
-                        if (loginLogo) {
-                            loginLogo.textContent = globalCompanyName;
-                        }
+                        // Update login screen logo with colors
+                        updateLoginLogoText(globalCompanyName, colorData);
 
                         // Update page title
                         document.title = `${globalCompanyName} - Elevator Management System`;
@@ -6920,6 +6965,7 @@
 
             if (cachedCompanyName) {
                 updateLoadingLogoText(cachedCompanyName, cachedColorData);
+                updateLoginLogoText(cachedCompanyName, cachedColorData);
             }
 
             if (cachedCompanyLogo) {
