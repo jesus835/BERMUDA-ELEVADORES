@@ -1,7 +1,7 @@
 {
-  "name": "Bermuda Elevators - Elevator Management System",
-  "short_name": "Bermuda Elevators",
-  "description": "Sistema de gestión de elevadores para Bermuda Elevators",
+  "name": "Elevator Alarm Pro",
+  "short_name": "Alarm Pro",
+  "description": "Elevator monitoring and alert system",
   "version": "1.0.0",
   "start_url": "./index.html",
   "display": "standalone",
@@ -9,7 +9,7 @@
   "theme_color": "#0b3d91",
   "orientation": "portrait",
   "scope": "./",
-  "lang": "es",
+  "lang": "en",
   "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
