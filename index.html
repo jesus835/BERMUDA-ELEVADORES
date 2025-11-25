@@ -3180,6 +3180,45 @@
             loginLogo.textContent = companyName;
         }
 
+        // Helper function to extract clean text from color format
+        function extractCleanText(text) {
+            if (!text) return '';
+            
+            // If text has color format (format: "WORD1#color1 WORD2#color2")
+            if (text.includes('#')) {
+                const parts = text.split(' ');
+                let textOnly = [];
+
+                // Process each part to extract only text
+                for (let i = 0; i < parts.length; i++) {
+                    if (parts[i].includes('#')) {
+                        const [word, colorRaw] = parts[i].split('#');
+                        if (word) {
+                            textOnly.push(word);
+                        }
+                    } else {
+                        textOnly.push(parts[i]);
+                    }
+                }
+
+                return textOnly.join(' ');
+            }
+
+            return text;
+        }
+
+        // Function to update device company name (plain text, no colors)
+        function updateDeviceCompanyName(companyName, colorData = null) {
+            if (!companyName) return;
+
+            const deviceCompanyNameSpan = document.getElementById('deviceCompanyName');
+            if (!deviceCompanyNameSpan) return;
+
+            // Extract clean text without color codes
+            const cleanText = extractCleanText(companyName);
+            deviceCompanyNameSpan.textContent = cleanText;
+        }
+
         // Function to update header logo image
         function updateHeaderLogo(logoUrl, companyName) {
             const headerLogoImg = document.getElementById('headerLogoImg');
@@ -3202,6 +3241,7 @@
                 if (cachedCompanyName) {
                     updateLoadingLogoText(cachedCompanyName, cachedColorData);
                     updateLoginLogoText(cachedCompanyName, cachedColorData);
+                    updateDeviceCompanyName(cachedCompanyName, cachedColorData);
                 }
 
                 // Load timezone from cache immediately
@@ -3267,12 +3307,9 @@
                     // Update header logo image and alt text
                     updateHeaderLogo(globalLogoUrl, globalCompanyName);
 
-                    // Update device company name display
+                    // Update device company name display with colors
                     if (globalCompanyName) {
-                        const deviceCompanyNameSpan = document.getElementById('deviceCompanyName');
-                        if (deviceCompanyNameSpan) {
-                            deviceCompanyNameSpan.textContent = globalCompanyName;
-                        }
+                        updateDeviceCompanyName(globalCompanyName, colorData);
                     }
                 }
             } catch (error) {
@@ -6966,6 +7003,7 @@
             if (cachedCompanyName) {
                 updateLoadingLogoText(cachedCompanyName, cachedColorData);
                 updateLoginLogoText(cachedCompanyName, cachedColorData);
+                updateDeviceCompanyName(cachedCompanyName, cachedColorData);
             }
 
             if (cachedCompanyLogo) {
