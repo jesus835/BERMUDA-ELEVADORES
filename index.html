@@ -3468,7 +3468,8 @@
             return customName || defaultName;
         }
 
-        // Function to get custom status text (STATUS FALSE/TRUE) for a device
+        // Function to get custom status text and color (STATUS FALSE/TRUE) for a device
+        // Retorna: { text: string, color: string|null }
         function getCustomStatusText(deviceId, value, fieldName = null) {
             try {
                 // Handle boolean values directly
@@ -3500,20 +3501,38 @@
                 if (!customFieldNamesCache || !customFieldNamesCache[deviceId]) {
                     // If no custom config, return default based on value
                     console.log(`⚠️ No custom config for device ${deviceId}, using default: ${isTrue ? 'ALERT' : 'NORMAL'}`);
-                    return isTrue ? 'ALERT' : 'NORMAL';
+                    return { text: isTrue ? 'ALERT' : 'NORMAL', color: null };
                 }
 
                 const deviceData = customFieldNamesCache[deviceId];
                 
-                // NUEVO: Si el fieldName tiene formato "NOMBRE/TRUE/FALSE", usar esos valores
+                // NUEVO: Si el fieldName tiene formato "NOMBRE/TRUE/FALSE/COLOR", usar esos valores
                 if (fieldName) {
                     const upperFieldName = fieldName.toUpperCase();
                     let customFieldValue = deviceData[upperFieldName] || deviceData[fieldName] || deviceData[fieldName.toLowerCase()];
                     
                     if (customFieldValue && typeof customFieldValue === 'string' && customFieldValue.includes('/')) {
                         const parts = customFieldValue.split('/');
-                        if (parts.length === 3) {
-                            // Formato: NOMBRE/TRUE/FALSE
+                        
+                        // Formato: NOMBRE/TRUE/FALSE/COLOR (4 partes)
+                        if (parts.length === 4) {
+                            const customTrue = parts[1].trim();
+                            const customFalse = parts[2].trim();
+                            const customColor = parts[3].trim();
+                            
+                            console.log(`🎨 Using field-specific format with COLOR for ${fieldName}: TRUE="${customTrue}", FALSE="${customFalse}", COLOR="${customColor}"`);
+                            
+                            if (isTrue && customTrue) {
+                                console.log(`✅ Using field-specific STATUS_TRUE with color: ${customTrue} (${customColor})`);
+                                return { text: customTrue, color: customColor };
+                            }
+                            if (isFalse && customFalse) {
+                                console.log(`✅ Using field-specific STATUS_FALSE with color: ${customFalse} (${customColor})`);
+                                return { text: customFalse, color: customColor };
+                            }
+                        }
+                        // Formato: NOMBRE/TRUE/FALSE (3 partes - sin color)
+                        else if (parts.length === 3) {
                             const customTrue = parts[1].trim();
                             const customFalse = parts[2].trim();
                             
@@ -3521,11 +3540,11 @@
                             
                             if (isTrue && customTrue) {
                                 console.log(`✅ Using field-specific STATUS_TRUE: ${customTrue}`);
-                                return customTrue;
+                                return { text: customTrue, color: null };
                             }
                             if (isFalse && customFalse) {
                                 console.log(`✅ Using field-specific STATUS_FALSE: ${customFalse}`);
-                                return customFalse;
+                                return { text: customFalse, color: null };
                             }
                         }
                     }
@@ -3536,24 +3555,24 @@
                 // If value is true and there's custom STATUS_TRUE text, use it
                 if (isTrue && deviceData['STATUS_TRUE']) {
                     console.log(`✅ Using custom STATUS_TRUE: ${deviceData['STATUS_TRUE']}`);
-                    return deviceData['STATUS_TRUE'];
+                    return { text: deviceData['STATUS_TRUE'], color: null };
                 }
 
                 // If value is false and there's custom STATUS_FALSE text, use it
                 if (isFalse && deviceData['STATUS_FALSE']) {
                     console.log(`✅ Using custom STATUS_FALSE: ${deviceData['STATUS_FALSE']}`);
-                    return deviceData['STATUS_FALSE'];
+                    return { text: deviceData['STATUS_FALSE'], color: null };
                 }
 
                 // Fallback to default
                 console.log(`⚠️ No custom text found, using default: ${isTrue ? 'ALERT' : 'NORMAL'}`);
-                return isTrue ? 'ALERT' : 'NORMAL';
+                return { text: isTrue ? 'ALERT' : 'NORMAL', color: null };
 
             } catch (error) {
                 console.error(`Error getting custom status text for ${deviceId}:`, error);
                 const valueStr = String(value).toLowerCase().trim();
                 const isTrue = valueStr === 'true' || valueStr === '1' || valueStr === 'yes' || valueStr === 'alerta' || valueStr === 'active' || valueStr === 'on';
-                return isTrue ? 'ALERT' : 'NORMAL';
+                return { text: isTrue ? 'ALERT' : 'NORMAL', color: null };
             }
         }
 
@@ -3877,38 +3896,38 @@
                             statusesContainer.innerHTML = `
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.OUT_OF_SERVICE ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
                                     <span>${outOfServiceName}</span>
-                                    <span class="${deviceData.OUT_OF_SERVICE ? 'true' : 'false'}" style="color: ${deviceData.OUT_OF_SERVICE ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                        ${outOfServiceStatus}
+                                    <span class="${deviceData.OUT_OF_SERVICE ? 'true' : 'false'}" style="color: ${outOfServiceStatus.color || (deviceData.OUT_OF_SERVICE ? '#e74c3c' : '#27ae60')}; font-weight: 600;">
+                                        ${outOfServiceStatus.text}
                                     </span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.FIRE_SERVICE ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
                                     <span>${fireServiceName}</span>
-                                    <span class="${deviceData.FIRE_SERVICE ? 'true' : 'false'}" style="color: ${deviceData.FIRE_SERVICE ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                        ${fireServiceStatus}
+                                    <span class="${deviceData.FIRE_SERVICE ? 'true' : 'false'}" style="color: ${fireServiceStatus.color || (deviceData.FIRE_SERVICE ? '#e74c3c' : '#27ae60')}; font-weight: 600;">
+                                        ${fireServiceStatus.text}
                                     </span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.PHONE_COMM ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
                                     <span>${phoneCommName}</span>
-                                    <span class="${deviceData.PHONE_COMM ? 'true' : 'false'}" style="color: ${deviceData.PHONE_COMM ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                        ${phoneCommStatus}
+                                    <span class="${deviceData.PHONE_COMM ? 'true' : 'false'}" style="color: ${phoneCommStatus.color || (deviceData.PHONE_COMM ? '#e74c3c' : '#27ae60')}; font-weight: 600;">
+                                        ${phoneCommStatus.text}
                                     </span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.PIT_FLOODED ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
                                     <span>${pitFloodedName}</span>
-                                    <span class="${deviceData.PIT_FLOODED ? 'true' : 'false'}" style="color: ${deviceData.PIT_FLOODED ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                        ${pitFloodedStatus}
+                                    <span class="${deviceData.PIT_FLOODED ? 'true' : 'false'}" style="color: ${pitFloodedStatus.color || (deviceData.PIT_FLOODED ? '#e74c3c' : '#27ae60')}; font-weight: 600;">
+                                        ${pitFloodedStatus.text}
                                     </span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
                                     <span>${atFloorName}</span>
-                                    <span class="${deviceData.AT_FLOOR ? 'true' : 'false'}" style="color: ${deviceData.AT_FLOOR ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                        ${atFloorStatus}
+                                    <span class="${deviceData.AT_FLOOR ? 'true' : 'false'}" style="color: ${atFloorStatus.color || (deviceData.AT_FLOOR ? '#e74c3c' : '#27ae60')}; font-weight: 600;">
+                                        ${atFloorStatus.text}
                                     </span>
                                 </div>
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef;">
                                     <span>${movingName}</span>
-                                    <span class="${deviceData.MOVING ? 'true' : 'false'}" style="color: ${deviceData.MOVING ? '#e74c3c' : '#27ae60'}; font-weight: 600;">
-                                        ${movingStatus}
+                                    <span class="${deviceData.MOVING ? 'true' : 'false'}" style="color: ${movingStatus.color || (deviceData.MOVING ? '#e74c3c' : '#27ae60')}; font-weight: 600;">
+                                        ${movingStatus.text}
                                     </span>
                                 </div>
                             `;
