@@ -3133,92 +3133,6 @@
             }
         }
 
-        // Function to update login screen logo text with colors (supports unlimited words)
-        function updateLoginLogoText(companyName, colorData = null) {
-            if (!companyName) return;
-
-            const loginLogo = document.querySelector('.login-logo h1');
-            if (!loginLogo) return;
-
-            // Use colorData if provided, otherwise try to use companyName if it has color format
-            const dataToProcess = colorData || companyName;
-
-            // If data has color format (format: "WORD1#color1 WORD2#color2 WORD3#color3 ...")
-            if (dataToProcess && dataToProcess.includes('#')) {
-                const parts = dataToProcess.split(' ');
-                let hasColorFormat = false;
-                let htmlOutput = '';
-
-                // Process each part
-                for (let i = 0; i < parts.length; i++) {
-                    if (parts[i].includes('#')) {
-                        hasColorFormat = true;
-                        const [text, colorRaw] = parts[i].split('#');
-                        
-                        if (text && colorRaw) {
-                            // Add # only if it looks like a hex color (not a CSS color name)
-                            let color = colorRaw;
-                            if (/^[0-9A-Fa-f]{3,6}$/.test(colorRaw)) {
-                                color = `#${colorRaw}`;
-                            }
-                            
-                            // Add space before word if not the first one
-                            const space = i > 0 ? ' ' : '';
-                            htmlOutput += `${space}<span style="color: ${color};">${text}</span>`;
-                        }
-                    }
-                }
-
-                // If we found color format, use it
-                if (hasColorFormat && htmlOutput) {
-                    loginLogo.innerHTML = htmlOutput;
-                    return;
-                }
-            }
-
-            // Default behavior: just show company name
-            loginLogo.textContent = companyName;
-        }
-
-        // Helper function to extract clean text from color format
-        function extractCleanText(text) {
-            if (!text) return '';
-            
-            // If text has color format (format: "WORD1#color1 WORD2#color2")
-            if (text.includes('#')) {
-                const parts = text.split(' ');
-                let textOnly = [];
-
-                // Process each part to extract only text
-                for (let i = 0; i < parts.length; i++) {
-                    if (parts[i].includes('#')) {
-                        const [word, colorRaw] = parts[i].split('#');
-                        if (word) {
-                            textOnly.push(word);
-                        }
-                    } else {
-                        textOnly.push(parts[i]);
-                    }
-                }
-
-                return textOnly.join(' ');
-            }
-
-            return text;
-        }
-
-        // Function to update device company name (plain text, no colors)
-        function updateDeviceCompanyName(companyName, colorData = null) {
-            if (!companyName) return;
-
-            const deviceCompanyNameSpan = document.getElementById('deviceCompanyName');
-            if (!deviceCompanyNameSpan) return;
-
-            // Extract clean text without color codes
-            const cleanText = extractCleanText(companyName);
-            deviceCompanyNameSpan.textContent = cleanText;
-        }
-
         // Function to update header logo image
         function updateHeaderLogo(logoUrl, companyName) {
             const headerLogoImg = document.getElementById('headerLogoImg');
@@ -3240,8 +3154,6 @@
                 const cachedColorData = localStorage.getItem('dispositivos_colorData');
                 if (cachedCompanyName) {
                     updateLoadingLogoText(cachedCompanyName, cachedColorData);
-                    updateLoginLogoText(cachedCompanyName, cachedColorData);
-                    updateDeviceCompanyName(cachedCompanyName, cachedColorData);
                 }
 
                 // Load timezone from cache immediately
@@ -3291,8 +3203,11 @@
                         // Update loading screen logo with fresh data
                         updateLoadingLogoText(globalCompanyName, colorData);
 
-                        // Update login screen logo with colors
-                        updateLoginLogoText(globalCompanyName, colorData);
+                        // Update login screen logo
+                        const loginLogo = document.querySelector('.login-logo h1');
+                        if (loginLogo) {
+                            loginLogo.textContent = globalCompanyName;
+                        }
 
                         // Update page title
                         document.title = `${globalCompanyName} - Elevator Management System`;
@@ -3307,9 +3222,12 @@
                     // Update header logo image and alt text
                     updateHeaderLogo(globalLogoUrl, globalCompanyName);
 
-                    // Update device company name display with colors
+                    // Update device company name display
                     if (globalCompanyName) {
-                        updateDeviceCompanyName(globalCompanyName, colorData);
+                        const deviceCompanyNameSpan = document.getElementById('deviceCompanyName');
+                        if (deviceCompanyNameSpan) {
+                            deviceCompanyNameSpan.textContent = globalCompanyName;
+                        }
                     }
                 }
             } catch (error) {
@@ -3539,11 +3457,19 @@
                 customName = customFieldNamesCache[deviceId][fieldName.toLowerCase()];
             }
 
+            // NUEVO: Si el nombre personalizado tiene formato "NOMBRE/TRUE/FALSE", extraer solo el nombre
+            if (customName && typeof customName === 'string' && customName.includes('/')) {
+                const parts = customName.split('/');
+                if (parts.length >= 1) {
+                    return parts[0].trim(); // Retornar solo el nombre (primera parte)
+                }
+            }
+
             return customName || defaultName;
         }
 
         // Function to get custom status text (STATUS FALSE/TRUE) for a device
-        function getCustomStatusText(deviceId, value) {
+        function getCustomStatusText(deviceId, value, fieldName = null) {
             try {
                 // Handle boolean values directly
                 let isTrue = false;
@@ -3578,6 +3504,33 @@
                 }
 
                 const deviceData = customFieldNamesCache[deviceId];
+                
+                // NUEVO: Si el fieldName tiene formato "NOMBRE/TRUE/FALSE", usar esos valores
+                if (fieldName) {
+                    const upperFieldName = fieldName.toUpperCase();
+                    let customFieldValue = deviceData[upperFieldName] || deviceData[fieldName] || deviceData[fieldName.toLowerCase()];
+                    
+                    if (customFieldValue && typeof customFieldValue === 'string' && customFieldValue.includes('/')) {
+                        const parts = customFieldValue.split('/');
+                        if (parts.length === 3) {
+                            // Formato: NOMBRE/TRUE/FALSE
+                            const customTrue = parts[1].trim();
+                            const customFalse = parts[2].trim();
+                            
+                            console.log(`🔍 Using field-specific format for ${fieldName}: TRUE="${customTrue}", FALSE="${customFalse}"`);
+                            
+                            if (isTrue && customTrue) {
+                                console.log(`✅ Using field-specific STATUS_TRUE: ${customTrue}`);
+                                return customTrue;
+                            }
+                            if (isFalse && customFalse) {
+                                console.log(`✅ Using field-specific STATUS_FALSE: ${customFalse}`);
+                                return customFalse;
+                            }
+                        }
+                    }
+                }
+                
                 console.log(`🔍 Custom status text for ${deviceId}: value=${value} (${typeof value}), isTrue=${isTrue}, isFalse=${isFalse}, STATUS_TRUE=${deviceData['STATUS_TRUE']}, STATUS_FALSE=${deviceData['STATUS_FALSE']}`);
 
                 // If value is true and there's custom STATUS_TRUE text, use it
@@ -3913,13 +3866,13 @@
                             const atFloorName = getFieldDisplayName(deviceId, 'AT_FLOOR', 'input5');
                             const movingName = getFieldDisplayName(deviceId, 'MOVING', 'input6');
 
-                            // Get custom status texts
-                            const outOfServiceStatus = getCustomStatusText(deviceId, deviceData.OUT_OF_SERVICE);
-                            const fireServiceStatus = getCustomStatusText(deviceId, deviceData.FIRE_SERVICE);
-                            const phoneCommStatus = getCustomStatusText(deviceId, deviceData.PHONE_COMM);
-                            const pitFloodedStatus = getCustomStatusText(deviceId, deviceData.PIT_FLOODED);
-                            const atFloorStatus = getCustomStatusText(deviceId, deviceData.AT_FLOOR);
-                            const movingStatus = getCustomStatusText(deviceId, deviceData.MOVING);
+                            // Get custom status texts (con fieldName para soportar formato NOMBRE/TRUE/FALSE)
+                            const outOfServiceStatus = getCustomStatusText(deviceId, deviceData.OUT_OF_SERVICE, 'OUT_OF_SERVICE');
+                            const fireServiceStatus = getCustomStatusText(deviceId, deviceData.FIRE_SERVICE, 'FIRE_SERVICE');
+                            const phoneCommStatus = getCustomStatusText(deviceId, deviceData.PHONE_COMM, 'PHONE_COMM');
+                            const pitFloodedStatus = getCustomStatusText(deviceId, deviceData.PIT_FLOODED, 'PIT_FLOODED');
+                            const atFloorStatus = getCustomStatusText(deviceId, deviceData.AT_FLOOR, 'AT_FLOOR');
+                            const movingStatus = getCustomStatusText(deviceId, deviceData.MOVING, 'MOVING');
 
                             statusesContainer.innerHTML = `
                                 <div class="status-item" style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e9ecef; ${deviceData.OUT_OF_SERVICE ? 'border: 2px solid #e74c3c; border-radius: 5px; background-color: #fdf2f2;' : ''}">
@@ -7002,8 +6955,6 @@
 
             if (cachedCompanyName) {
                 updateLoadingLogoText(cachedCompanyName, cachedColorData);
-                updateLoginLogoText(cachedCompanyName, cachedColorData);
-                updateDeviceCompanyName(cachedCompanyName, cachedColorData);
             }
 
             if (cachedCompanyLogo) {
