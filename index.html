@@ -1867,6 +1867,55 @@
                     // Store color data for immediate display
                     window._cachedColorData = cachedColorData;
                 }
+
+                // Update login screen logo immediately from cache
+                if (cachedCompanyName) {
+                    // Wait for DOM to be ready
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const loginLogo = document.querySelector('.login-logo h1');
+                            if (loginLogo) {
+                                // Extract plain text from color data
+                                let plainText = cachedCompanyName;
+                                if (cachedCompanyName.includes('#')) {
+                                    const parts = cachedCompanyName.split(' ');
+                                    const plainWords = [];
+                                    for (let part of parts) {
+                                        if (part.includes('#')) {
+                                            const [word] = part.split('#');
+                                            if (word) plainWords.push(word);
+                                        } else {
+                                            plainWords.push(part);
+                                        }
+                                    }
+                                    plainText = plainWords.join(' ');
+                                }
+                                loginLogo.textContent = plainText;
+                            }
+                        });
+                    } else {
+                        // DOM is already ready
+                        const loginLogo = document.querySelector('.login-logo h1');
+                        if (loginLogo) {
+                            // Extract plain text from color data
+                            let plainText = cachedCompanyName;
+                            if (cachedCompanyName.includes('#')) {
+                                const parts = cachedCompanyName.split(' ');
+                                const plainWords = [];
+                                for (let part of parts) {
+                                    if (part.includes('#')) {
+                                        const [word] = part.split('#');
+                                        if (word) plainWords.push(word);
+                                    } else {
+                                        plainWords.push(part);
+                                    }
+                                }
+                                plainText = plainWords.join(' ');
+                            }
+                            loginLogo.textContent = plainText;
+                        }
+                    }
+                }
             } catch (e) {
                 console.error('Error loading cached company data:', e);
             }
@@ -3057,6 +3106,34 @@
             return 'Atlantic/Bermuda';
         }
 
+        // Function to extract plain text from color-coded format (e.g., "BERMUDA#FFA500 ELEVATOR#FF0000" -> "BERMUDA ELEVATOR")
+        function extractPlainTextFromColorData(text) {
+            if (!text) return '';
+
+            // If text has color format (contains #), extract just the words
+            if (text.includes('#')) {
+                const parts = text.split(' ');
+                const plainWords = [];
+
+                for (let part of parts) {
+                    if (part.includes('#')) {
+                        // Extract text before the # symbol
+                        const [word] = part.split('#');
+                        if (word) {
+                            plainWords.push(word);
+                        }
+                    } else {
+                        plainWords.push(part);
+                    }
+                }
+
+                return plainWords.join(' ');
+            }
+
+            // If no color format, return as-is
+            return text;
+        }
+
         // Function to update loading screen logo text with colors (supports unlimited words)
         function updateLoadingLogoText(companyName, colorData = null) {
             if (!companyName) return;
@@ -3203,19 +3280,20 @@
                         // Update loading screen logo with fresh data
                         updateLoadingLogoText(globalCompanyName, colorData);
 
-                        // Update login screen logo
+                        // Update login screen logo (extract plain text without color codes)
                         const loginLogo = document.querySelector('.login-logo h1');
                         if (loginLogo) {
-                            loginLogo.textContent = globalCompanyName;
+                            loginLogo.textContent = extractPlainTextFromColorData(globalCompanyName);
                         }
 
-                        // Update page title
-                        document.title = `${globalCompanyName} - Elevator Management System`;
+                        // Update page title (extract plain text without color codes)
+                        const plainCompanyName = extractPlainTextFromColorData(globalCompanyName);
+                        document.title = `${plainCompanyName} - Elevator Management System`;
 
-                        // Update meta tag
+                        // Update meta tag (use plain text)
                         const metaTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
                         if (metaTitle) {
-                            metaTitle.setAttribute('content', globalCompanyName);
+                            metaTitle.setAttribute('content', plainCompanyName);
                         }
                     }
 
@@ -4593,7 +4671,7 @@
                     card.onclick = function () {
                     };
 
-                    container.appendChild(card);
+                    container.prepend(card);
                 });
 
             } catch (error) {
